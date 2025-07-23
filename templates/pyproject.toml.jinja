@@ -1,0 +1,31 @@
+[build-system]
+requires = ["uv_build"]
+build-backend = "uv_build"
+
+[project]
+name = "numpy-typing-compat"
+version = "{{ np_start }}.{{ BUILD }}"
+description = "NumPy version information that type-checkers understand"
+authors = [{name = "Joren Hammudoglu", email = "jhammudoglu@gmail.com"}]
+license = "BSD-3-Clause"
+license-files = ["LICENSE"]
+readme = "README.md"
+keywords = ["numpy", "typing", "compatibility"]
+classifiers = [
+  "Development Status :: 5 - Production/Stable",
+  "Intended Audience :: Developers",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3",
+{%- for py_minor in range(py_start[1], py_stop[1]) %}
+  "Programming Language :: Python :: 3.{{ py_minor }}",
+{%- endfor %}
+  "Typing :: Typed",
+]
+requires-python = ">={{ py_start }}"
+dependencies = ["numpy>={{ np_start }},<{{ np_stop }}"]
+
+[project.urls]
+Repository = "{{ REPO }}"
+Issues = "{{ REPO }}/issues"
+Changelog = "{{ REPO }}/releases"
