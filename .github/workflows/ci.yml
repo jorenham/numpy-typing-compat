@@ -32,12 +32,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4.2.2
       - uses: astral-sh/setup-uv@v6.4.2
+        with:
+          activate-environment: true
+
+      - name: install dependencies
+        run: uv pip install jinja2
 
       - name: ty
-        run: uvx --with jinja2 ty check
+        run: uvx ty check
 
       - name: basedpyright
-        run: uvx --with jinja2 basedpyright
+        run: uvx basedpyright
 
       - name: mypy
         run: uvx --with jinja2 mypy .
