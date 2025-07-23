@@ -1,0 +1,17 @@
+from typing import Final, Literal
+
+__all__ = (
+    {%- for project in PROJECTS %}
+    "{{ project.const_name }}",
+    {%- endfor %}
+)
+
+def __dir__() -> tuple[str, ...]:
+    return __all__
+
+
+{% for project in PROJECTS -%}
+{% set np_other = project.np_range[0] -%}
+{% set is_ge = np_start >= np_other -%}
+{{ project.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}  # numpy >= {{ np_other }}
+{% endfor %}
