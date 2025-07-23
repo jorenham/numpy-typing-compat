@@ -27,3 +27,6 @@ jobs:
 
       - name: publish to PyPI
         uses: pypa/gh-action-pypi-publish@v1.12.4
+        with:
+          print-hash: true
+          skip-existing: true
