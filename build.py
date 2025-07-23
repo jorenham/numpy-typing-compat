@@ -9,7 +9,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import Final, NamedTuple, final
+from typing import Final, NamedTuple, final, override
 
 import jinja2
 
@@ -49,9 +49,11 @@ class Version(NamedTuple):
     major: int
     minor: int
 
+    @override
     def __str__(self, /) -> str:
         return f"{self.major}.{self.minor}"
 
+    @override
     def __repr__(self, /) -> str:
         clsname = type(self).__name__
         return f"<{clsname} {self.major}.{self.minor}>"
@@ -93,9 +95,11 @@ class Project:
     def const_name(self, /) -> str:
         return f"NUMPY_GE_{self.np_range[0]}".replace(".", "_")
 
+    @override
     def __str__(self, /) -> str:
         return self.distname
 
+    @override
     def __repr__(self, /) -> str:
         clsname = type(self).__name__
         return f"<{clsname} np_range={self.np_range} py_range={self.py_range}>"
@@ -114,12 +118,12 @@ class Project:
         }
         return _get_template(fname).render(**context)
 
-    def _create_project(self, /) -> Path:
+    def _create_project(self, /):
         project_dir = self.path_project
         project_dir.mkdir(parents=True, exist_ok=True)
 
         for fname in ("LICENSE", "README.md"):
-            shutil.copy2(str(DIR_ROOT / fname), str(project_dir / fname))
+            _ = shutil.copy2(str(DIR_ROOT / fname), str(project_dir / fname))
 
         # pyproject.toml
         pyproject_path = project_dir / "pyproject.toml"
@@ -137,8 +141,6 @@ class Project:
         py_typed_path = module_dir / "py.typed"
         _ = py_typed_path.write_text("")
 
-        return project_dir
-
     def build(self, /) -> None:
         self._create_project()
 
@@ -151,8 +153,8 @@ class Project:
         print("$", " ".join(cmd))
 
         completed = subprocess.run(cmd, capture_output=True, text=True)
-        sys.stderr.write(completed.stderr)
-        sys.stdout.write(completed.stdout)
+        _ = sys.stderr.write(completed.stderr)
+        _ = sys.stdout.write(completed.stdout)
         completed.check_returncode()
 
         paths: list[Path] = []
