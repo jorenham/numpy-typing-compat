@@ -1,0 +1,29 @@
+name: Update PyPI releases
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+env:
+  UV_LOCKED: 1
+
+jobs:
+  pypi-publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment:
+      name: pypi
+      url: https://pypi.org/p/array-typing-compat
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4.2.2
+
+      - uses: astral-sh/setup-uv@v6.4.1
+
+      - name: build packages
+        run: uv run build.py
+
+      - name: publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.12.4
