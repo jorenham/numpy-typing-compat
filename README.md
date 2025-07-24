@@ -1,6 +1,6 @@
 # numpy-typing-compat
 
-_NumPy version information that type-checkers understand_
+*NumPy version information that type-checkers understand*
 
 ![license](https://img.shields.io/github/license/scipy/scipy-stubs?color=violet&style=flat-square)
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
