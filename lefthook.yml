@@ -23,11 +23,10 @@ pre-commit:
           - name: format
             run: uvx ruff format {staged_files}
 
-    # TODO(jorenham)
-    # - name: dprint
-    #   glob: "*.{json,jsonc,md,toml,yaml,yml}"
-    #   stage_fixed: true
-    #   run: uvx --from dprint-py fmt --incremental=false
+    - name: dprint
+      glob: "*.{json,jsonc,md,toml,yaml,yml}"
+      stage_fixed: true
+      run: uvx --from dprint-py dprint fmt {staged_files}
 
     - name: basedpyright
       glob: "*.{py,pyi}"
