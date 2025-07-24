@@ -2,11 +2,10 @@
 
 *NumPy version information that type-checkers understand*
 
-![license](https://img.shields.io/github/license/scipy/scipy-stubs?color=violet&style=flat-square)
-[![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-[![basedpyright](https://img.shields.io/badge/basedpyright-checked-42b983)](https://detachhead.github.io/basedpyright)
-[![mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://github.com/python/mypy)
-![typed](https://img.shields.io/pypi/types/scipy-stubs?color=white)
+[![release](https://img.shields.io/github/v/release/jorenham/numpy-typing-compat?style=flat-square&color=333)](https://github.com/jorenham/numpy-typing-compat/releases)
+![typed](https://img.shields.io/pypi/types/numpy-typing-compat?style=flat-square&color=333)
+![license](https://img.shields.io/github/license/jorenham/numpy-typing-compat?style=flat-square&color=333)
+[![NumPy](https://img.shields.io/badge/NumPy-013243?logo=NumPy&style=flat-square&logoColor=4D77CF&color=333)](https://github.com/numpy/numpy)
 
 ## Overview
 
