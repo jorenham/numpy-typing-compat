@@ -19,8 +19,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4.2.2
 
-      - name: typos
-        uses: crate-ci/typos@v1.34.0
+      - name: dprint
+        uses: dprint/check@v2.3
 
       - name: ruff
         uses: astral-sh/ruff-action@v3.5.0
