@@ -22,8 +22,15 @@ jobs:
       - name: dprint
         uses: dprint/check@v2.3
 
+      - name: ruff check
+        uses: astral-sh/ruff-action@v3.5.0
+        with:
+          args: "check --preview --output-format=github"
+
       - name: ruff
         uses: astral-sh/ruff-action@v3.5.0
+        with:
+          args: "format --preview --check --diff"
 
   typecheck:
     runs-on: ubuntu-latest
@@ -44,7 +51,7 @@ jobs:
         run: uvx basedpyright
 
       - name: mypy
-        run: uvx --with jinja2 mypy .
+        run: uvx --with jinja2 mypy --strict .
 
   build:
     runs-on: ubuntu-latest
