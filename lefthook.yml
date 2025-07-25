@@ -18,10 +18,10 @@ pre-commit:
         piped: true
         jobs:
           - name: check
-            run: uvx ruff check --fix {staged_files}
+            run: uvx ruff check --preview --fix {staged_files}
 
           - name: format
-            run: uvx ruff format {staged_files}
+            run: uvx ruff format --preview {staged_files}
 
     - name: dprint
       glob: "*.{json,jsonc,md,toml,yaml,yml}"
@@ -34,4 +34,4 @@ pre-commit:
 
     - name: mypy
       glob: "*.{py,pyi}"
-      run: uvx --with jinja2 mypy {staged_files}
+      run: uvx --with jinja2 mypy --strict {staged_files}
