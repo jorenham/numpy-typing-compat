@@ -56,11 +56,23 @@ to install the correct version of `numpy-typing-compat` that matches the install
 
 ## Reference
 
-The following boolean constants are available:
+<!-- TODO(jorenham): document long and ulong -->
+
+### Array API
+
+Additionally, the package provides a `numpy_typing_compat.array_api` namespace that's a re-export
+the `numpy.array_api` module on `numpy < 2.0`, or the main `numpy` module on `numpy >= 2.0`.
+Note that the `numpy.array_api` module was introduced in `numpy>=1.23`, so it is isn't available in
+`numpy-typing-compat==1.22.*`.
+
+### Version constants
+
+The following low-level boolean version constants are available:
 
 | Constant        | `True` when     |
 | --------------- | --------------- |
 | `NUMPY_GE_1_22` | `numpy >= 1.22` |
+| `NUMPY_GE_1_23` | `numpy >= 1.23` |
 | `NUMPY_GE_1_25` | `numpy >= 1.25` |
 | `NUMPY_GE_2_0`  | `numpy >= 2.0`  |
 | `NUMPY_GE_2_1`  | `numpy >= 2.1`  |
@@ -69,34 +81,3 @@ The following boolean constants are available:
 
 Each constant is typed as `Literal[True]` or `Literal[False]` depending on your NumPy version,
 allowing type checkers to perform accurate type narrowing.
-
-## Examples
-
-### `numpy.exceptions`
-
-The `numpy.exceptions` module was introduced in NumPy 1.25, and since 2.0 the exceptions
-were removed from the global `numpy` namespace. If you support both `<1.25` and `>=2.0`, you can
-conditionally import exceptions like this:
-
-```python
-from numpy_typing_compat import NUMPY_GE_1_25
-
-if NUMPY_GE_1_25:
-    from numpy.exceptions import AxisError
-else:
-    from numpy import AxisError
-```
-
-### `numpy.long`
-
-The `numpy.long` scalar type was introduced in NumPy 2.0. Before 2.0, it was named `numpy.int_`.
-
-```python
-import numpy as np
-from numpy_typing_compat import NUMPY_GE_2_0
-
-if NUMPY_GE_2_0:
-    type Long = np.long
-else:
-    type Long = np.int_
-```
