@@ -56,14 +56,29 @@ to install the correct version of `numpy-typing-compat` that matches the install
 
 ## Reference
 
-<!-- TODO(jorenham): document long and ulong -->
-
 ### Array API
 
 Additionally, the package provides a `numpy_typing_compat.array_api` namespace that's a re-export
 the `numpy.array_api` module on `numpy < 2.0`, or the main `numpy` module on `numpy >= 2.0`.
 Note that the `numpy.array_api` module was introduced in `numpy>=1.23`, so it is isn't available in
 `numpy-typing-compat==1.22.*`.
+
+### `numpy.long`
+
+NumPy 2.0 introduced the new `long` and `ulong` scalar types, which are not available in
+`numpy < 2.0`, and instead went by the names `int_` and `uint` (which in `numpy>=2` are
+aliases for `intp` and `uintp`).
+If you need to support both NumPy versions, you can use the `long` and `ulong` types
+from `numpy_typing_compat`, which on numpy < 2.0 are aliases for `np.int_` and
+`np.uint`, and on numpy >= 2.0 are re-exports of `np.long` and `np.ulong`.
+
+### `numpy.dtypes.StringDType`
+
+In NumPy 2.0, the `numpy.dtypes.StringDType` was introduced, but it was only until
+NumPy 2.1 that it was also available in the `numpy` stubs. The
+`numpy_typing_compat.StringDType` is a re-export of `numpy.dtypes.StringDType` on
+`numpy >= 2.1`, and and alias of `np.dtype[Never]` on `numpy < 2.1`. This allows type
+checkers to also accept `StringDType` as a valid type on `numpy == 2.0.*`.
 
 ### Version constants
 
