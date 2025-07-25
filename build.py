@@ -1,6 +1,9 @@
 # /// script
 # requires-python = ">=3.13"
-# dependencies = ["jinja2>=3.1.6", "uv>=0.8.3"]
+# dependencies = [
+#     "jinja2 >=3.1.6",
+#     "uv >=0.8.3",
+# ]
 # ///
 
 # pyright: reportAny=false
@@ -67,7 +70,30 @@ def _fetch_json(
         if response.status != 200:
             raise IOError(f"Failed to fetch {url}: {response.status} {response.reason}")
         contents = response.read()
-    return json.loads(contents)
+    return json.loads(contents)  # type: ignore[no-any-return]
+
+
+def _run_command(
+    *cmd: str,
+    cwd: Path | None = None,
+) -> subprocess.CompletedProcess[str]:
+    if not (quiet := "--quiet" in sys.argv):
+        print(">>>", " ".join(cmd), file=sys.stderr)
+
+    completed = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
+
+    if not quiet:
+        _ = sys.stdout.write(completed.stdout)
+        _ = sys.stderr.write(completed.stderr)
+
+    try:
+        completed.check_returncode()
+    except subprocess.CalledProcessError:
+        if quiet:
+            _ = sys.stderr.write(completed.stderr)
+        raise
+
+    return completed
 
 
 class Version(NamedTuple):
@@ -153,7 +179,7 @@ class Project:
         }
         return _get_template(fname).render(**context)
 
-    def _create_project(self, /):
+    def _create_project(self, /) -> None:
         project_dir = self.project_path
         project_dir.mkdir(parents=True, exist_ok=True)
 
@@ -168,30 +194,36 @@ class Project:
         module_dir = project_dir / "src" / NAME
         module_dir.mkdir(parents=True, exist_ok=True)
 
+        # src/numpy_typing_compat/py.typed
+        py_typed_path = module_dir / "py.typed"
+        _ = py_typed_path.write_text("")
+
         # src/numpy_typing_compat/__init__.py
         init_file = module_dir / "__init__.py"
         _ = init_file.write_text(self._render_to_string("__init__.py"))
 
-        # src/numpy_typing_compat/py.typed
-        py_typed_path = module_dir / "py.typed"
-        _ = py_typed_path.write_text("")
+        # ruff check and format the generated code
+        for ruff_cmd in ("check", "format"):
+            _ = _run_command(
+                "uvx",
+                "ruff",
+                ruff_cmd,
+                "--no-cache",
+                "--preview",
+                "--quiet",
+                cwd=self.project_path,
+            )
 
     def build(self, /) -> None:
         """Create and `uv build` the projects."""
         self._create_project()
 
-        cmd = [
+        completed = _run_command(
             "uv",
             "build",
             f"--directory=./{self.project_path.relative_to(Path.cwd())}",
             f"--out-dir={DIR_DIST}",
-        ]
-        print("$", " ".join(cmd), file=sys.stderr)
-
-        completed = subprocess.run(cmd, capture_output=True, text=True)
-        _ = sys.stderr.write(completed.stderr)
-        _ = sys.stdout.write(completed.stdout)
-        completed.check_returncode()
+        )
 
         # verify that the build was successful
         paths: list[Path] = []
@@ -291,8 +323,14 @@ PROJECTS = [
 
 
 def main(*args: str) -> int:
-    # [version]: (sha256_sdist, sha256_wheel)
-    latest_hashes = _fetch_latest_release_hashes()
+    latest_hashes: DistInfo[dict[Version, tuple[int, str]]]
+    if "--always" in args:
+        latest_hashes = DistInfo({}, {})
+    else:
+        latest_hashes = _fetch_latest_release_hashes()
+
+    quiet = "--quiet" in args
+    silent = "--silent" in args
 
     for project in PROJECTS:
         project.build()
@@ -303,21 +341,22 @@ def main(*args: str) -> int:
         for build_hashes, hash_, path in zip(latest_hashes, hashes, paths, strict=True):
             pypi_build, pypi_hash = build_hashes.get(np_version, (0, ""))
             if pypi_hash == hash_:
-                print(
-                    f"no changes since {np_version}.{pypi_build} - removing {path}",
-                    file=sys.stderr,
-                )
+                if not quiet:
+                    print(
+                        f"no changes since {np_version}.{pypi_build} - removing {path}",
+                        file=sys.stderr,
+                    )
+
                 path.unlink()
-            else:
+            elif not silent:
                 # only print the paths of new builds to stdout
-                print(path)
+                print(path.relative_to(Path.cwd()), file=sys.stdout)
 
     # TODO: remove sdist/wheel if their hashes match the latest existing PyPI
     # version of the numpy branch
 
-    if "--keep" not in args:
-        if DIR_PROJECTS.exists():
-            shutil.rmtree(str(DIR_PROJECTS))
+    if "--keep" not in args and DIR_PROJECTS.exists():
+        shutil.rmtree(DIR_PROJECTS)
 
     return 0
 
