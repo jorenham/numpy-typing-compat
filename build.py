@@ -217,34 +217,6 @@ class Project:
         assert path_wheel == paths_expect.wheel, (path_wheel, paths_expect.wheel)
 
 
-PROJECTS = [
-    Project(
-        np_range=(Version(1, 22), Version(1, 25)),
-        py_range=(Version(3, 8), Version(3, 12)),
-    ),
-    Project(
-        np_range=(Version(1, 25), Version(2, 0)),
-        py_range=(Version(3, 9), Version(3, 13)),
-    ),
-    Project(
-        np_range=(Version(2, 0), Version(2, 1)),
-        py_range=(Version(3, 9), Version(3, 13)),
-    ),
-    Project(
-        np_range=(Version(2, 1), Version(2, 2)),
-        py_range=(Version(3, 10), Version(3, 14)),
-    ),
-    Project(
-        np_range=(Version(2, 2), Version(2, 3)),
-        py_range=(Version(3, 10), Version(3, 14)),
-    ),
-    Project(
-        np_range=(Version(2, 3), Version(2, 4)),
-        py_range=(Version(3, 11), Version(3, 15)),
-    ),
-]
-
-
 def _fetch_latest_release_hashes() -> DistInfo[dict[Version, tuple[int, str]]]:
     # https://peps.python.org/pep-0691/
     # https://docs.pypi.org/api/index-api/#json_1
@@ -286,6 +258,38 @@ def _fetch_latest_release_hashes() -> DistInfo[dict[Version, tuple[int, str]]]:
     return DistInfo(sdist=latest_sdists, wheel=latest_wheels)
 
 
+PROJECTS = [
+    Project(
+        np_range=(Version(1, 22), Version(1, 23)),
+        py_range=(Version(3, 8), Version(3, 11)),
+    ),
+    Project(
+        np_range=(Version(1, 23), Version(1, 25)),
+        py_range=(Version(3, 8), Version(3, 12)),
+    ),
+    Project(
+        np_range=(Version(1, 25), Version(2, 0)),
+        py_range=(Version(3, 9), Version(3, 13)),
+    ),
+    Project(
+        np_range=(Version(2, 0), Version(2, 1)),
+        py_range=(Version(3, 9), Version(3, 13)),
+    ),
+    Project(
+        np_range=(Version(2, 1), Version(2, 2)),
+        py_range=(Version(3, 10), Version(3, 14)),
+    ),
+    Project(
+        np_range=(Version(2, 2), Version(2, 3)),
+        py_range=(Version(3, 10), Version(3, 14)),
+    ),
+    Project(
+        np_range=(Version(2, 3), Version(2, 4)),
+        py_range=(Version(3, 11), Version(3, 15)),
+    ),
+]
+
+
 def main(*args: str) -> int:
     # [version]: (sha256_sdist, sha256_wheel)
     latest_hashes = _fetch_latest_release_hashes()
@@ -296,9 +300,8 @@ def main(*args: str) -> int:
         hashes = project.dist_hashes
         paths = project.dist_paths
 
-        for build_hashes, hash_, path in zip(latest_hashes, hashes, paths):
-            pypi_build, pypi_hash = build_hashes[np_version]
-
+        for build_hashes, hash_, path in zip(latest_hashes, hashes, paths, strict=True):
+            pypi_build, pypi_hash = build_hashes.get(np_version, (0, ""))
             if pypi_hash == hash_:
                 print(
                     f"no changes since {np_version}.{pypi_build} - removing {path}",
