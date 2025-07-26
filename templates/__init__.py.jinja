@@ -1,46 +1,43 @@
-from typing import Final, Literal
+from typing import TYPE_CHECKING, Final, Literal
 
 {% if np_start >= (2, 0) -%}
-{%- if np_start >= (1, 23) %}import numpy as array_api{% endif %}
 from numpy import long, ulong
 {%- else -%}
-from numpy import array_api, int_ as long, uint as ulong
+from numpy import int_ as long, uint as ulong
 {%- endif %}
 
-{% if np_start >= (2, 1) -%}
-from numpy.dtypes import StringDType
-{%- else -%}
-from typing import TYPE_CHECKING, TypeAlias
-
-{% if np_start >= (2, 0) -%}
 if TYPE_CHECKING:
-    from typing_extensions import Never
+    from typing_extensions import TypeAlias, Never
+{% if np_start >= (2, 0) %}
+    import numpy as array_api
     from numpy import dtype
 
     # there were no `numpy.dtypes.StringDType` typing stubs before numpy 2.1, but
     # because it has no scalar type we use `Never` to indicate its absence.
     StringDType: TypeAlias = dtype[Never]
-else:
-    from numpy.dtypes import StringDType
 {% else -%}
-if TYPE_CHECKING:
-    from typing_extensions import Never
+{% if np_start >= (1, 23) %}
+    from numpy import array_api
+{%- else %}
+    array_api: TypeAlias = Never
+{%- endif %}
 
     # `StringDType` did not exist before numpy 2.0, and we use `Never` to indicate that
     # it is not available in earlier versions, so that when used in type hints it won't
     # cause issues with type checkers, rejecting all assignments (except for `Any`).
     StringDType: TypeAlias = Never
 {%- endif %}
-{%- endif %}
 
 __all__ = (
-    {%- for project in PROJECTS %}
+{%- for project in PROJECTS %}
     "{{ project.const_name }}",
-    {%- endfor %}
-    {%- if np_start >= (2, 0) %}
+{%- endfor %}
+{%- if np_start >= (2, 0) %}
     "StringDType",
-    {%- endif %}
+{%- endif %}
+{%- if np_start >= (1, 23) %}
     "array_api",
+{%- endif %}
     "long",
     "ulong",
 )
@@ -48,6 +45,29 @@ __all__ = (
 
 def __dir__() -> tuple[str, ...]:
     return __all__
+
+
+def __getattr__(name: str, /) -> object:
+{%- if np_start >= (1, 23) %}
+    if name == "array_api":
+{%- if np_start >= (2, 0) %}
+        import numpy
+        return numpy
+{%- else %}
+        from numpy import array_api
+        return array_api
+{%- endif %}
+{%- endif %}
+{% if np_start >= (2, 0) %}
+    if name == "StringDType":
+        from numpy.dtypes import StringDType
+        return StringDType
+{%- endif %}
+
+    if name in globals():
+        return globals()[name]
+
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
 {% for project in PROJECTS -%}
