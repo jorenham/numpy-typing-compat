@@ -375,7 +375,6 @@ def main(*args: str) -> int:
                 path.unlink()
 
             elif not flags.silent:
-                print(f"[debug] {hash_!r} != {pypi_hash!r}")
                 # only print the paths of new builds to stdout
                 print(path.relative_to(Path.cwd()), file=sys.stdout)
 
