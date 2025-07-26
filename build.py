@@ -366,7 +366,7 @@ def main(*args: str) -> int:
         for build_hashes, hash_, path in zip(latest_hashes, hashes, paths, strict=True):
             pypi_build, pypi_hash = build_hashes.get(np_version, (0, ""))
             if hash_ == pypi_hash:
-                if not (flags.quiet or flags.silent):
+                if not flags.quiet:
                     print(
                         f"no changes since {np_version}.{pypi_build} - removing {path}",
                         file=sys.stderr,
