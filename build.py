@@ -180,7 +180,7 @@ def _run_command(
     try:
         completed.check_returncode()
     except subprocess.CalledProcessError:
-        if flags.quiet and not flags.silent:
+        if flags.quiet:
             _ = sys.stderr.write(completed.stderr)
         raise
 
