@@ -8,16 +8,19 @@
 
 # pyright: reportAny=false
 
+import dataclasses
 import datetime as dt
 import hashlib
 import json
+import operator
 import re
 import shutil
 import subprocess
 import sys
 import urllib.request
+from collections.abc import Container
 from pathlib import Path
-from typing import Any, Final, NamedTuple, final, override
+from typing import Any, Final, NamedTuple, Self, final, override
 
 import jinja2
 
@@ -37,6 +40,51 @@ JINJA_ENV = jinja2.Environment(
     loader=jinja2.FileSystemLoader(DIR_TEMPLATES),
     keep_trailing_newline=True,
 )
+
+
+@dataclasses.dataclass(slots=True)
+class Flags:
+    """Flags for the build script."""
+
+    always: bool = False
+    keep: bool = False
+    quiet: bool = False
+    silent: bool = False
+
+    def __post_init__(self, /) -> None:
+        if self.silent:
+            self.quiet = True
+
+    @classmethod
+    def from_args(cls, args: Container[str] = sys.argv[1:], /) -> Self:
+        return cls(**{
+            k: f"--{k}" in args
+            for k in map(operator.attrgetter("name"), dataclasses.fields(cls))
+        })
+
+
+class Version(NamedTuple):
+    """A version tuple with a custom string representation."""
+
+    major: int
+    minor: int
+
+    @override
+    def __str__(self, /) -> str:
+        return f"{self.major}.{self.minor}"
+
+    @override
+    def __repr__(self, /) -> str:
+        clsname = type(self).__name__
+        return f"<{clsname} {self.major}.{self.minor}>"
+
+
+type VersionRange = tuple[Version, Version]
+
+
+class DistInfo[T](NamedTuple):
+    sdist: T
+    wheel: T
 
 
 def _get_template(fname: str) -> jinja2.Template:
@@ -73,51 +121,70 @@ def _fetch_json(
     return json.loads(contents)  # type: ignore[no-any-return]
 
 
+def _fetch_latest_release_hashes() -> DistInfo[dict[Version, tuple[int, str]]]:
+    # https://peps.python.org/pep-0691/
+    # https://docs.pypi.org/api/index-api/#json_1
+    data = _fetch_json(
+        f"https://files.pythonhosted.org/simple/{NAME}",
+        headers={
+            "Host": "pypi.org",
+            "Accept": "application/vnd.pypi.simple.v1+json",
+        },
+    )
+    if "files" not in data:
+        raise ValueError(f"Invalid response from PyPI: {data!r}")
+
+    # keep only the latest sdist and wheel files for each numpy version
+    # {Version: (build, sha256)}
+    latest_sdists: dict[Version, tuple[int, str]] = {}
+    latest_wheels: dict[Version, tuple[int, str]] = {}
+    for file in data["files"]:
+        fname: str = file["filename"]
+        if fname.endswith(".whl"):
+            # e.g. numpy_typing_compat-1.22.20250724-py3-none-any.whl
+            pattern = rf"{NAME}-(\d)\.(\d+)\.(\d+)-py3-none-any\.whl"
+            target = latest_wheels
+        else:
+            # e.g. numpy_typing_compat-1.25.20250724.tar.gz
+            pattern = rf"{NAME}-(\d)\.(\d+)\.(\d+)\.tar\.gz"
+            target = latest_sdists
+
+        match = re.match(pattern, fname)
+        assert match, file
+
+        np_version = Version(int(match.group(1)), int(match.group(2)))
+        build = int(match.group(3))
+        assert build > 2025_06_00, file
+
+        if np_version not in target or target[np_version][0] < build:
+            target[np_version] = build, file["hashes"]["sha256"]
+
+    return DistInfo(sdist=latest_sdists, wheel=latest_wheels)
+
+
 def _run_command(
     *cmd: str,
     cwd: Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
-    if not (quiet := "--quiet" in sys.argv):
+    flags = Flags.from_args()
+
+    if not flags.quiet:
         print(">>>", " ".join(cmd), file=sys.stderr)
 
     completed = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
 
-    if not quiet:
+    if not flags.quiet:
         _ = sys.stdout.write(completed.stdout)
         _ = sys.stderr.write(completed.stderr)
 
     try:
         completed.check_returncode()
     except subprocess.CalledProcessError:
-        if quiet:
+        if flags.quiet:
             _ = sys.stderr.write(completed.stderr)
         raise
 
     return completed
-
-
-class Version(NamedTuple):
-    """A version tuple with a custom string representation."""
-
-    major: int
-    minor: int
-
-    @override
-    def __str__(self, /) -> str:
-        return f"{self.major}.{self.minor}"
-
-    @override
-    def __repr__(self, /) -> str:
-        clsname = type(self).__name__
-        return f"<{clsname} {self.major}.{self.minor}>"
-
-
-type VersionRange = tuple[Version, Version]
-
-
-class DistInfo[T](NamedTuple):
-    sdist: T
-    wheel: T
 
 
 @final
@@ -249,47 +316,6 @@ class Project:
         assert path_wheel == paths_expect.wheel, (path_wheel, paths_expect.wheel)
 
 
-def _fetch_latest_release_hashes() -> DistInfo[dict[Version, tuple[int, str]]]:
-    # https://peps.python.org/pep-0691/
-    # https://docs.pypi.org/api/index-api/#json_1
-    data = _fetch_json(
-        f"https://files.pythonhosted.org/simple/{NAME}",
-        headers={
-            "Host": "pypi.org",
-            "Accept": "application/vnd.pypi.simple.v1+json",
-        },
-    )
-    if "files" not in data:
-        raise ValueError(f"Invalid response from PyPI: {data!r}")
-
-    # keep only the latest sdist and wheel files for each numpy version
-    # {Version: (build, sha256)}
-    latest_sdists: dict[Version, tuple[int, str]] = {}
-    latest_wheels: dict[Version, tuple[int, str]] = {}
-    for file in data["files"]:
-        fname: str = file["filename"]
-        if fname.endswith(".whl"):
-            # e.g. numpy_typing_compat-1.22.20250724-py3-none-any.whl
-            pattern = rf"{NAME}-(\d)\.(\d+)\.(\d+)-py3-none-any\.whl"
-            target = latest_wheels
-        else:
-            # e.g. numpy_typing_compat-1.25.20250724.tar.gz
-            pattern = rf"{NAME}-(\d)\.(\d+)\.(\d+)\.tar\.gz"
-            target = latest_sdists
-
-        match = re.match(pattern, fname)
-        assert match, file
-
-        np_version = Version(int(match.group(1)), int(match.group(2)))
-        build = int(match.group(3))
-        assert build > 2025_06_00, file
-
-        if np_version not in target or target[np_version][0] < build:
-            target[np_version] = build, file["hashes"]["sha256"]
-
-    return DistInfo(sdist=latest_sdists, wheel=latest_wheels)
-
-
 PROJECTS = [
     Project(
         np_range=(Version(1, 22), Version(1, 23)),
@@ -323,14 +349,13 @@ PROJECTS = [
 
 
 def main(*args: str) -> int:
+    flags = Flags.from_args(set(args))
+
     latest_hashes: DistInfo[dict[Version, tuple[int, str]]]
-    if "--always" in args:
+    if flags.always:
         latest_hashes = DistInfo({}, {})
     else:
         latest_hashes = _fetch_latest_release_hashes()
-
-    quiet = "--quiet" in args
-    silent = "--silent" in args
 
     for project in PROJECTS:
         project.build()
@@ -340,22 +365,20 @@ def main(*args: str) -> int:
 
         for build_hashes, hash_, path in zip(latest_hashes, hashes, paths, strict=True):
             pypi_build, pypi_hash = build_hashes.get(np_version, (0, ""))
-            if pypi_hash == hash_:
-                if not quiet:
+            if hash_ == pypi_hash:
+                if not flags.quiet:
                     print(
                         f"no changes since {np_version}.{pypi_build} - removing {path}",
                         file=sys.stderr,
                     )
 
                 path.unlink()
-            elif not silent:
+
+            elif not flags.silent:
                 # only print the paths of new builds to stdout
                 print(path.relative_to(Path.cwd()), file=sys.stdout)
 
-    # TODO: remove sdist/wheel if their hashes match the latest existing PyPI
-    # version of the numpy branch
-
-    if "--keep" not in args and DIR_PROJECTS.exists():
+    if not flags.keep and DIR_PROJECTS.exists():
         shutil.rmtree(DIR_PROJECTS)
 
     return 0
