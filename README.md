@@ -1,11 +1,11 @@
-# numpy-typing-compat
+# `numpy-typing-compat`
 
 *NumPy version information that type-checkers understand*
 
-[![release](https://img.shields.io/github/v/release/jorenham/numpy-typing-compat?style=flat-square&color=333)](https://github.com/jorenham/numpy-typing-compat/releases)
+[![release](https://img.shields.io/github/v/release/jorenham/numpy-typing-compat?style=flat-square&color=333)][RELEASES]
 ![typed](https://img.shields.io/pypi/types/numpy-typing-compat?style=flat-square&color=333)
 ![license](https://img.shields.io/github/license/jorenham/numpy-typing-compat?style=flat-square&color=333)
-[![NumPy](https://img.shields.io/badge/NumPy-013243?logo=NumPy&style=flat-square&logoColor=4D77CF&color=333)](https://github.com/numpy/numpy)
+[![NumPy](https://img.shields.io/badge/NumPy-013243?logo=NumPy&style=flat-square&logoColor=4D77CF&color=333)][NP]
 
 ## Overview
 
@@ -15,58 +15,44 @@ write NumPy-version-dependent static type annotations. Similar to how you might 
 enables static type-checkers to understand which NumPy version is being used and apply
 appropriate type annotations.
 
-## Use Case
-
-This package is particularly useful for libraries that need to support multiple NumPy
-versions, for example because they follow
-[SPEC 0](https://scientific-python.org/specs/spec-0000/). However, there may have been
-changes in NumPy that affect type annotations. For instance, the `numpy.exceptions`
-module was introduced in NumPy 1.25, and contains the exceptions that were previously in
-the global `numpy` namespace. In NumPy 2.0, these exceptions were removed from the
-global namespace. So if you support `<1.25` and also `>=2.0`, you will need to
-conditionally import these exceptions to ensure compatibility across versions.
-
-```python
-from numpy_typing_compat import NUMPY_GE_1_25
-
-if NUMPY_GE_1_25:
-    from numpy.exceptions import AxisError
-else:
-    from numpy import AxisError
-```
-
-Type checkers like mypy, pyright, and basedpyright understand these patterns and will
-apply the correct type annotations based on the installed NumPy version.
+> [!TIP]
+> `numpy-typing-compat` is intended as a helper package for the [`optype`][OP] library,
+> which provides high-level typing utilities for annotating NumPy operations.
+> In most situations, it is recommended to use `optype` instead of
+> `numpy-typing-compat`. See the [`optype.numpy` documentation][ONP] for more details.
 
 ## Installation
 
-```bash
-pip install numpy-typing-compat
-```
+Modern package managers such as [`uv`](https://github.com/astral-sh/uv) will
+automatically install the appropriate version of `numpy-typing-compat` that matches your
+installed NumPy version, in order to satisfy the `numpy` dependency restrictions of
+`numpy-typing-compat`.
 
-The package automatically selects the appropriate version constants based on your
-installed NumPy version. It does so by requiring a specific version of NumPy in its
-`pyproject.toml` file, so that your package manager will install the correct version of
-`numpy-typing-compat` that matches the NumPy version you have installed.
+For example, the `numpy-typing-compat==2.1.*` distribution specifies `numpy>=2.1,<2.2`
+as a required dependency. Modern package managers will ensure that these dependency
+restrictions are satisfied. That way, if you upgrade `numpy` from `2.1` to `2.3`, e.g.
+by running `uv sync --upgrade`, then `uv` will also automatically look for a version of
+`numpy-typing-compat` that satisfies the new `numpy` version, which in this case
+would be `numpy-typing-compat==2.3.*`.
 
-For example, if you have `numpy==2.1.3` pinned in your `pyproject.toml`, and you run
-`uv add numpy-typing-compat`, it will install `numpy-typing-compat==2.1.*`. That
-specific version has `NUMPY_GE_2_1 = True`, and `NUMPY_GE_2_2 = False` set.
-
-Note that `numpy-typing-compat` does not import `numpy`, and instead relies on the
-package manager to install the correct version of `numpy-typing-compat` that matches the
-installed NumPy version.
+> [!WARNING]
+> Legacy package managers such as `pip` don't respect dependency restrictions.
+> Running `pip install --upgrade numpy` will *not* automatically upgrade
+> `numpy-typing-compat` to the correct version. If for some reason you need to use `pip`,
+> then be sure to manually install the correct version of `numpy-typing-compat` that
+> matches your installed NumPy version. Running `pip check` will tell you whether the
+> installed `numpy-typing-compat` and `numpy` versions are compatible.
 
 ## Reference
 
-### Array API
+### `array_api`
 
 Additionally, the package provides a `numpy_typing_compat.array_api` namespace that's a
 re-export of the `numpy.array_api` module on `numpy < 2.0`, or the main `numpy` module
 on `numpy >= 2.0`. Note that the `numpy.array_api` module was introduced in
 `numpy >= 1.23`, so it isn't available in `numpy-typing-compat==1.22.*`.
 
-### `numpy.long`
+### `long` and `ulong`
 
 NumPy 2.0 introduced the new `long` and `ulong` scalar types, which are not available in
 `numpy < 2.0`, and instead went by the names `int_` and `uint` (which in `numpy >= 2.0`
@@ -75,7 +61,7 @@ If you need to support both NumPy versions, you can use the `long` and `ulong` t
 from `numpy_typing_compat`, which on `numpy < 2.0` are aliases for `np.int_` and
 `np.uint`, and on `numpy >= 2.0` are re-exports of `np.long` and `np.ulong`.
 
-### `numpy.dtypes.StringDType`
+### `StringDType`
 
 In NumPy 2.0, the `numpy.dtypes.StringDType` was introduced, but it wasn't until
 NumPy 2.1 that it was also available in the `numpy` stubs. The
@@ -98,4 +84,15 @@ The following low-level boolean version constants are available:
 | `NUMPY_GE_2_3`  | `numpy >= 2.3`  |
 
 Each constant is typed as `Literal[True]` or `Literal[False]` depending on your NumPy
-version, allowing type checkers to perform accurate type narrowing.
+version, so that static type-checkers are able to understand the NumPy version being
+used.
+
+> [!WARNING]
+> At the moment, mypy and pyright only have limited support for `Literal` type conditions,
+> and will not treat `if NUMPY_GE_2_0: ...` in the same way as
+> `if sys.version_info >= (3, 12): ...` or `if sys.platform == "win32": ...`.
+
+[RELEASES]: https://github.com/jorenham/numpy-typing-compat/releases
+[NP]: https://github.com/numpy/numpy
+[OP]: https://github.com/jorenham/optype
+[ONP]: https://github.com/jorenham/optype#optypenumpy
