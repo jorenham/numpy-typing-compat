@@ -28,7 +28,7 @@ automatically install the appropriate version of `numpy-typing-compat` that matc
 installed NumPy version, in order to satisfy the `numpy` dependency restrictions of
 `numpy-typing-compat`.
 
-For example, the `optype-numpy-compat==2.1.*` distribution specifies `numpy>=2.1,<2.2`
+For example, the `numpy-typing-compat==2.1.*` distribution specifies `numpy>=2.1,<2.2`
 as a required dependency. Modern package managers will ensure that these dependency
 restrictions are satisfied. That way, if you upgrade `numpy` from `2.1` to `2.3`, e.g.
 by running `uv sync --upgrade`, then `uv` will also automatically look for a version of
