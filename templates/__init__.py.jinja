@@ -99,9 +99,13 @@ def __getattr__(name: str, /) -> object:
 {{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
 {% endfor %}
 
-
-LiteralFalse: TypeAlias = Literal[False]{% if np_start >= (2, 2) %} | "np.bool[False]"{% endif %}
-LiteralTrue: TypeAlias = Literal[True]{% if np_start >= (2, 2) %} | "np.bool[True]"{% endif %}
+{% if np_start >= (2, 2) -%}
+LiteralTrue: TypeAlias = "Literal[True] | np.bool[Literal[True]]"
+LiteralFalse: TypeAlias = "Literal[False] | np.bool[Literal[False]]"
+{%- else -%}
+LiteralTrue: TypeAlias = Literal[True]
+LiteralFalse: TypeAlias = Literal[False]
+{%- endif %}
 
 
 ShapeT_co = TypeVar("ShapeT_co", bound=tuple[int, ...], covariant=True)
