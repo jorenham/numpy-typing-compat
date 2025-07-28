@@ -7,16 +7,26 @@ if TYPE_CHECKING:
     import numpy as array_api
     from numpy import long, ulong
     from numpy.dtypes import StringDType
+{%- if np_start >= (2, 2) %}{# >2.2 #}
+    from numpy.polynomial._polybase import ABCPolyBase
+{%- else %}{# >=2.1, <2.2  (mea culpa) #}
+    from numpy.polynomial._polybase import ABCPolyBase as _ABCPolyBase
+    from typing_extensions import LiteralString, TypeAlias
+
+    ABCPolyBase: TypeAlias = _ABCPolyBase[LiteralString | None]
+{%- endif %}{# >=2.1 #}
 {%- elif np_start >= (2, 0) -%}{# >=2.0, <2.1 #}
     from typing_extensions import Never, TypeAlias
 
     import numpy as array_api
     from numpy import dtype, long, ulong
+    from numpy.polynomial._polybase import ABCPolyBase
 
     StringDType: TypeAlias = dtype[Never]
 {%- else -%}{# >=1.22, <2.0 #}
     from typing_extensions import Never, TypeAlias
 
+    from numpy.polynomial._polybase import ABCPolyBase
     from numpy import int_ as long
     from numpy import uint as ulong
 {%- if np_start >= (1, 23) %}{# >=1.23, <2.0 #}
@@ -33,20 +43,24 @@ if TYPE_CHECKING:
 __version__: Final[Literal["{{ project.version }}"]] = "{{ project.version }}"
 
 __all__ = (
-    "__version__",
 {%- for other in PROJECTS %}
     "{{ other.const_name }}",
 {%- endfor %}
+    "ABCPolyBase",
     "CanArray",
     "StringDType",
     "array_api",
     "long",
     "ulong",
     "_check_version",
+    "__version__",
 )
 
 def __dir__() -> tuple[str, ...]:
-    return __all__ + ("_check_version",)
+    return __all__
+
+
+__ALL_SET = frozenset(__all__)
 
 
 def __getattr__(name: str, /) -> object:
@@ -59,8 +73,8 @@ def __getattr__(name: str, /) -> object:
     if name == "StringDType":
         from numpy.dtypes import StringDType
         return StringDType
-
 {%- endif %}
+
     if name == "long":
         from numpy import {% if np_start < (2, 0) %}int_ as {% endif %}long
         return long
@@ -69,7 +83,11 @@ def __getattr__(name: str, /) -> object:
         from numpy import {% if np_start < (2, 0) %}uint as {% endif %}ulong
         return ulong
 
-    if name in globals():
+    if name == "ABCPolyBase":
+        from numpy.polynomial._polybase import ABCPolyBase
+        return ABCPolyBase
+
+    if name in __ALL_SET and name in globals():
         return globals()[name]
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
@@ -78,13 +96,6 @@ def __getattr__(name: str, /) -> object:
 {% set is_ge = np_start >= other.np_range[0] -%}
 {{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
 {% endfor %}
-
-def _check_version() -> bool:
-    """"Check if the `numpy-typing-compat` version is compatible with `numpy`."""
-    import numpy as np
-
-    np_version = tuple(map(int, np.__version__.split(".", 2)[:2]))
-    return ({{ np_start[0] }}, {{ np_start[1] }}) <= np_version < ({{ np_stop[0] }}, {{ np_stop[1] }})
 
 
 ShapeT_co = TypeVar("ShapeT_co", bound=tuple[int, ...], covariant=True)
@@ -98,3 +109,11 @@ class CanArray(Protocol[ShapeT_co, DTypeT_co]):
     def shape(self) -> ShapeT_co: ...
     def __array__(self, /) -> "np.ndarray[Any, DTypeT_co]": ...
 {%- endif %}
+
+
+def _check_version() -> bool:
+    """"Check if the `numpy-typing-compat` version is compatible with `numpy`."""
+    import numpy as np
+
+    np_version = tuple(map(int, np.__version__.split(".", 2)[:2]))
+    return ({{ np_start[0] }}, {{ np_start[1] }}) <= np_version < ({{ np_stop[0] }}, {{ np_stop[1] }})
