@@ -112,7 +112,7 @@ class CanArray(Protocol[ShapeT_co, DTypeT_co]):
 
 
 def _check_version() -> bool:
-    """"Check if the `numpy-typing-compat` version is compatible with `numpy`."""
+    """Check if the `numpy-typing-compat` version is compatible with `numpy`."""
     import numpy as np
 
     np_version = tuple(map(int, np.__version__.split(".", 2)[:2]))
