@@ -28,7 +28,7 @@ NAME = "numpy_typing_compat"
 REPO = "https://github.com/jorenham/numpy-typing-compat"
 
 # build number (patch version) as YYYYMMDD
-_TODAY = dt.date.today()
+_TODAY = dt.datetime.now(tz=dt.UTC).date()
 BUILD = _TODAY.year * 10_000 + _TODAY.month * 100 + _TODAY.day
 
 DIR_ROOT = Path(__file__).parent
