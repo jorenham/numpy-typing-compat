@@ -239,6 +239,7 @@ class Project:
         np_start, np_stop = self.np_range
         py_start, py_stop = self.py_range
         context = {
+            "project": self,
             "np_start": np_start,
             "np_stop": np_stop,
             "py_start": py_start,
