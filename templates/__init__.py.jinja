@@ -100,8 +100,8 @@ def __getattr__(name: str, /) -> object:
 {% endfor %}
 
 
-LiteralFalse: TypeAlias = Literal[False{% if np_start >= (2, 2) %}, "np.bool[False]"{% endif %}]
-LiteralTrue: TypeAlias = Literal[True{% if np_start >= (2, 2) %}, "np.bool[True]"{% endif %}]
+LiteralFalse: TypeAlias = Literal[False]{% if np_start >= (2, 2) %} | "np.bool[False]"{% endif %}
+LiteralTrue: TypeAlias = Literal[True]{% if np_start >= (2, 2) %} | "np.bool[True]"{% endif %}
 
 
 ShapeT_co = TypeVar("ShapeT_co", bound=tuple[int, ...], covariant=True)
