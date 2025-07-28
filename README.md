@@ -81,6 +81,15 @@ type checkers (when configured in strict mode) won't report an error on `numpy==
 when using `ABCPolyBase`. Note that `numpy_typing_compat.ABCPolyBase` does not accept a
 type parameter, even on `numpy >= 2.1`, for the sake of consistency.
 
+### `LiteralTrue` and `LiteralFalse`
+
+In NumPy 2.2, the `np.bool` scalar type became a generic type that accepts a type
+parameter of either `True` or `False`. For compatibility with `numpy < 2.2`, the
+`numpy_typing_compat.LiteralTrue` and `numpy_typing_compat.LiteralFalse` types are
+provided. These are type aliases for `Literal[True]` and `Literal[False]` on
+`numpy < 2.2`, and `Literal[True, np.bool[True]]` and `Literal[False, np.bool[False]]`
+on `numpy >= 2.2`, respectively.
+
 ### Version constants
 
 The following low-level boolean version constants are available:

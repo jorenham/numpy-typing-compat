@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, TypeVar
+from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, TypeAlias, TypeVar
 
 if TYPE_CHECKING:
     import numpy as np
@@ -11,12 +11,12 @@ if TYPE_CHECKING:
     from numpy.polynomial._polybase import ABCPolyBase
 {%- else %}{# >=2.1, <2.2  (mea culpa) #}
     from numpy.polynomial._polybase import ABCPolyBase as _ABCPolyBase
-    from typing_extensions import LiteralString, TypeAlias
+    from typing_extensions import LiteralString
 
     ABCPolyBase: TypeAlias = _ABCPolyBase[LiteralString | None]
 {%- endif %}{# >=2.1 #}
 {%- elif np_start >= (2, 0) -%}{# >=2.0, <2.1 #}
-    from typing_extensions import Never, TypeAlias
+    from typing_extensions import Never
 
     import numpy as array_api
     from numpy import dtype, long, ulong
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
     StringDType: TypeAlias = dtype[Never]
 {%- else -%}{# >=1.22, <2.0 #}
-    from typing_extensions import Never, TypeAlias
+    from typing_extensions import Never
 
     from numpy.polynomial._polybase import ABCPolyBase
     from numpy import int_ as long
@@ -48,6 +48,8 @@ __all__ = (
 {%- endfor %}
     "ABCPolyBase",
     "CanArray",
+    "LiteralFalse",
+    "LiteralTrue",
     "StringDType",
     "array_api",
     "long",
@@ -96,6 +98,10 @@ def __getattr__(name: str, /) -> object:
 {% set is_ge = np_start >= other.np_range[0] -%}
 {{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
 {% endfor %}
+
+
+LiteralFalse: TypeAlias = Literal[False{% if np_start >= (2, 2) %}, "np.bool[False]"{% endif %}]
+LiteralTrue: TypeAlias = Literal[True{% if np_start >= (2, 2) %}, "np.bool[True]"{% endif %}]
 
 
 ShapeT_co = TypeVar("ShapeT_co", bound=tuple[int, ...], covariant=True)
