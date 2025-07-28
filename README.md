@@ -69,6 +69,18 @@ NumPy 2.1 that it was also available in the `numpy` stubs. The
 `numpy >= 2.1`, and an alias of `np.dtype[Never]` on `numpy < 2.1`. This allows type
 checkers to also accept `StringDType` as a valid type on `numpy == 2.0.*`.
 
+### `ABCPolyBase`
+
+In NumPy 2.1, the `numpy.polynomial._polybase.ABCPolyBase` was made into a generic type,
+and in NumPy 2.2 the type parameter was made optional. This can be problematic on
+`numpy==2.1.*` if you also require support for `numpy < 2.1`.
+To work around this, the `numpy_typing_compat.ABCPolyBase` is a type alias for
+`numpy.polynomial._polybase.ABCPolyBase[LiteralString | None]` on `numpy==2.1.*`, and
+a direct re-export of `numpy.polynomial._polybase.ABCPolyBase` otherwise. This way,
+type checkers (when configured in strict mode) won't report an error on `numpy==2.1.*`
+when using `ABCPolyBase`. Note that `numpy_typing_compat.ABCPolyBase` does not accept a
+type parameter, even on `numpy >= 2.1`, for the sake of consistency.
+
 ### Version constants
 
 The following low-level boolean version constants are available:
