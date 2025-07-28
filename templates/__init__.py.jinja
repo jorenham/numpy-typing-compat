@@ -1,68 +1,76 @@
 from typing import TYPE_CHECKING, Final, Literal
 
-{% if np_start >= (2, 0) -%}
-from numpy import long, ulong
-{%- else -%}
-from numpy import int_ as long, uint as ulong
-{%- endif %}
-
 if TYPE_CHECKING:
-    from typing_extensions import TypeAlias, Never
-{% if np_start >= (2, 0) %}
+{%- if np_start >= (2, 1) %}
     import numpy as array_api
-    from numpy import dtype
+    from numpy import long, ulong
+    from numpy.dtypes import StringDType
+{%- elif np_start >= (2, 0) -%}{# >=2.0, <2.1 #}
+    from typing_extensions import Never, TypeAlias
 
-    # there were no `numpy.dtypes.StringDType` typing stubs before numpy 2.1, but
-    # because it has no scalar type we use `Never` to indicate its absence.
+    import numpy as array_api
+    from numpy import dtype, long, ulong
+
     StringDType: TypeAlias = dtype[Never]
-{% else -%}
-{% if np_start >= (1, 23) %}
+{%- else -%}{# >=1.22, <2.0 #}
+    from typing_extensions import Never, TypeAlias
+
+    from numpy import int_ as long
+    from numpy import uint as ulong
+{%- if np_start >= (1, 23) %}{# >=1.23, <2.0 #}
     from numpy import array_api
-{%- else %}
+
+    StringDType: TypeAlias = Never
+{%- else -%}{# >=1.22, <1.23 #}
     array_api: TypeAlias = Never
+    StringDType: TypeAlias = Never
+{%- endif %}{# >=1.22, <2.0 #}
 {%- endif %}
 
-    # `StringDType` did not exist before numpy 2.0, and we use `Never` to indicate that
-    # it is not available in earlier versions, so that when used in type hints it won't
-    # cause issues with type checkers, rejecting all assignments (except for `Any`).
-    StringDType: TypeAlias = Never
-{%- endif %}
+
+{% for other in PROJECTS -%}
+{% set np_other = other.np_range[0] -%}
+{% set is_ge = np_start >= np_other -%}
+{{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
+{% endfor %}
+__version__: Final[Literal["{{ project.version }}"]] = "{{ project.version }}"
 
 __all__ = (
-{%- for project in PROJECTS %}
-    "{{ project.const_name }}",
+    "__version__",
+{%- for other in PROJECTS %}
+    "{{ other.const_name }}",
 {%- endfor %}
-{%- if np_start >= (2, 0) %}
     "StringDType",
-{%- endif %}
-{%- if np_start >= (1, 23) %}
     "array_api",
-{%- endif %}
     "long",
     "ulong",
+    "_check_version",
 )
 
 
 def __dir__() -> tuple[str, ...]:
-    return __all__
+    return __all__ + ("_check_version",)
 
 
 def __getattr__(name: str, /) -> object:
 {%- if np_start >= (1, 23) %}
     if name == "array_api":
-{%- if np_start >= (2, 0) %}
-        import numpy
-        return numpy
-{%- else %}
-        from numpy import array_api
+        import numpy{% if np_start < (2, 0) %}.array_api{% endif %} as array_api
         return array_api
-{%- endif %}
 {%- endif %}
 {% if np_start >= (2, 0) %}
     if name == "StringDType":
         from numpy.dtypes import StringDType
         return StringDType
+
 {%- endif %}
+    if name == "long":
+        from numpy import {% if np_start < (2, 0) %}int_ as {% endif %}long
+        return long
+
+    if name == "ulong":
+        from numpy import {% if np_start < (2, 0) %}uint as {% endif %}ulong
+        return ulong
 
     if name in globals():
         return globals()[name]
@@ -70,8 +78,9 @@ def __getattr__(name: str, /) -> object:
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-{% for project in PROJECTS -%}
-{% set np_other = project.np_range[0] -%}
-{% set is_ge = np_start >= np_other -%}
-{{ project.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}  # numpy >= {{ np_other }}
-{% endfor -%}
+def _check_version() -> bool:
+    """"Check if the `numpy-typing-compat` version is compatible with `numpy`."""
+    import numpy as np
+
+    np_version = tuple(map(int, np.__version__.split(".", 2)[:2]))
+    return ({{ np_start[0] }}, {{ np_start[1] }}) <= np_version < ({{ np_stop[0] }}, {{ np_stop[1] }})
