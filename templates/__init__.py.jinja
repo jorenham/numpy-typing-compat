@@ -1,6 +1,8 @@
-from typing import TYPE_CHECKING, Final, Literal
+from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, TypeVar
 
 if TYPE_CHECKING:
+    import numpy as np
+
 {%- if np_start >= (2, 1) %}
     import numpy as array_api
     from numpy import long, ulong
@@ -28,11 +30,6 @@ if TYPE_CHECKING:
 {%- endif %}
 
 
-{% for other in PROJECTS -%}
-{% set np_other = other.np_range[0] -%}
-{% set is_ge = np_start >= np_other -%}
-{{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
-{% endfor %}
 __version__: Final[Literal["{{ project.version }}"]] = "{{ project.version }}"
 
 __all__ = (
@@ -40,13 +37,13 @@ __all__ = (
 {%- for other in PROJECTS %}
     "{{ other.const_name }}",
 {%- endfor %}
+    "CanArray",
     "StringDType",
     "array_api",
     "long",
     "ulong",
     "_check_version",
 )
-
 
 def __dir__() -> tuple[str, ...]:
     return __all__ + ("_check_version",)
@@ -77,6 +74,10 @@ def __getattr__(name: str, /) -> object:
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
+{% for other in PROJECTS -%}
+{% set is_ge = np_start >= other.np_range[0] -%}
+{{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
+{% endfor %}
 
 def _check_version() -> bool:
     """"Check if the `numpy-typing-compat` version is compatible with `numpy`."""
@@ -84,3 +85,16 @@ def _check_version() -> bool:
 
     np_version = tuple(map(int, np.__version__.split(".", 2)[:2]))
     return ({{ np_start[0] }}, {{ np_start[1] }}) <= np_version < ({{ np_stop[0] }}, {{ np_stop[1] }})
+
+
+ShapeT_co = TypeVar("ShapeT_co", bound=tuple[int, ...], covariant=True)
+DTypeT_co = TypeVar("DTypeT_co", bound="np.dtype[Any]", covariant=True)
+
+class CanArray(Protocol[ShapeT_co, DTypeT_co]):
+{%- if np_start >= (2, 1) %}
+    def __array__(self, /) -> "np.ndarray[ShapeT_co, DTypeT_co]": ...
+{%- else %}
+    @property
+    def shape(self) -> ShapeT_co: ...
+    def __array__(self, /) -> "np.ndarray[Any, DTypeT_co]": ...
+{%- endif %}
