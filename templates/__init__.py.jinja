@@ -65,15 +65,20 @@ __ALL_SET = frozenset(__all__)
 
 
 def __getattr__(name: str, /) -> object:
-{%- if np_start >= (1, 23) %}
-    if name == "array_api":
-        import numpy{% if np_start < (2, 0) %}.array_api{% endif %} as array_api
-        return array_api
+{%- if np_start < (2, 1) %}
+    if name == "CanArray":
+        from numpy import ndarray
+        return ndarray
 {%- endif %}
 {% if np_start >= (2, 0) %}
     if name == "StringDType":
         from numpy.dtypes import StringDType
         return StringDType
+{%- endif %}
+{% if np_start >= (1, 23) %}
+    if name == "array_api":
+        import numpy{% if np_start < (2, 0) %}.array_api{% endif %} as array_api
+        return array_api
 {%- endif %}
 
     if name == "long":
@@ -115,10 +120,11 @@ class CanArray(Protocol[ShapeT_co, DTypeT_co]):
     def __array__(self, /) -> "np.ndarray[ShapeT_co, DTypeT_co]": ...
 
 {%- else %}
-ShapeT = TypeVar("ShapeT", bound=tuple[int, ...])
-DTypeT = TypeVar("DTypeT", bound="np.dtype[Any]")
+if TYPE_CHECKING:
+    ShapeT = TypeVar("ShapeT", bound=tuple[int, ...])
+    DTypeT = TypeVar("DTypeT", bound="np.dtype[Any]")
 
-CanArray: TypeAlias = "np.ndarray[ShapeT, DTypeT]"
+    CanArray: TypeAlias = np.ndarray[ShapeT, DTypeT]
 {%- endif %}
 
 
