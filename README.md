@@ -36,10 +36,10 @@ would be `numpy-typing-compat==2.3.*`.
 > [!WARNING]
 > Legacy package managers such as `pip` don't respect dependency restrictions.
 > Running `pip install --upgrade numpy` will *not* automatically upgrade
-> `numpy-typing-compat` to the correct version. If for some reason you need to use `pip`,
-> then be sure to manually install the correct version of `numpy-typing-compat` that
-> matches your installed NumPy version. Running `pip check` will tell you whether the
-> installed `numpy-typing-compat` and `numpy` versions are compatible.
+> `numpy-typing-compat` to the correct version. If for some reason you need to use
+> `pip`, then be sure to manually install the correct version of `numpy-typing-compat`
+> that matches your installed NumPy version. Running `pip check` will tell you whether
+> the installed `numpy-typing-compat` and `numpy` versions are compatible.
 
 ## Reference
 
@@ -107,8 +107,8 @@ version, so that static type-checkers are able to understand the NumPy version b
 used.
 
 > [!WARNING]
-> At the moment, mypy and pyright only have limited support for `Literal` type conditions,
-> and will not treat `if NUMPY_GE_2_0: ...` in the same way as
+> At the moment, mypy and pyright only have limited support for `Literal` type
+> conditions, and will not treat `if NUMPY_GE_2_0: ...` in the same way as
 > `if sys.version_info >= (3, 12): ...` or `if sys.platform == "win32": ...`.
 
 [RELEASES]: https://github.com/jorenham/numpy-typing-compat/releases
