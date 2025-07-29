@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, TypeAlias, TypeVar
+from typing import TYPE_CHECKING, Any, Final, Literal, {% if np_start >= (2, 1) %}Protocol, {% endif %}TypeAlias, TypeVar
 
 if TYPE_CHECKING:
     import numpy as np
@@ -7,20 +7,19 @@ if TYPE_CHECKING:
     import numpy as array_api
     from numpy import long, ulong
     from numpy.dtypes import StringDType
-{%- if np_start >= (2, 2) %}{# >2.2 #}
+    {%- if np_start >= (2, 2) %}{# >2.2 #}
     from numpy.polynomial._polybase import ABCPolyBase
-{%- else %}{# >=2.1, <2.2  (mea culpa) #}
+    {%- else %}{# >=2.1, <2.2  (mea culpa) #}
     from numpy.polynomial._polybase import ABCPolyBase as _ABCPolyBase
     from typing_extensions import LiteralString
 
     ABCPolyBase: TypeAlias = _ABCPolyBase[LiteralString | None]
-{%- endif %}{# >=2.1 #}
+    {%- endif %}{# >=2.1 #}
 {%- elif np_start >= (2, 0) -%}{# >=2.0, <2.1 #}
-    from typing_extensions import Never
-
     import numpy as array_api
     from numpy import dtype, long, ulong
     from numpy.polynomial._polybase import ABCPolyBase
+    from typing_extensions import Never
 
     StringDType: TypeAlias = dtype[Never]
 {%- else -%}{# >=1.22, <2.0 #}
@@ -29,14 +28,14 @@ if TYPE_CHECKING:
     from numpy.polynomial._polybase import ABCPolyBase
     from numpy import int_ as long
     from numpy import uint as ulong
-{%- if np_start >= (1, 23) %}{# >=1.23, <2.0 #}
+    {%- if np_start >= (1, 23) %}{# >=1.23, <2.0 #}
     from numpy import array_api
 
     StringDType: TypeAlias = Never
-{%- else -%}{# >=1.22, <1.23 #}
+    {%- else -%}{# >=1.22, <1.23 #}
     array_api: TypeAlias = Never
     StringDType: TypeAlias = Never
-{%- endif %}{# >=1.22, <2.0 #}
+    {%- endif %}{# >=1.22, <2.0 #}
 {%- endif %}
 
 
@@ -108,16 +107,18 @@ LiteralFalse: TypeAlias = Literal[False]
 {%- endif %}
 
 
+{% if np_start >= (2, 1) -%}
 ShapeT_co = TypeVar("ShapeT_co", bound=tuple[int, ...], covariant=True)
 DTypeT_co = TypeVar("DTypeT_co", bound="np.dtype[Any]", covariant=True)
 
 class CanArray(Protocol[ShapeT_co, DTypeT_co]):
-{%- if np_start >= (2, 1) %}
     def __array__(self, /) -> "np.ndarray[ShapeT_co, DTypeT_co]": ...
+
 {%- else %}
-    @property
-    def shape(self) -> ShapeT_co: ...
-    def __array__(self, /) -> "np.ndarray[Any, DTypeT_co]": ...
+ShapeT = TypeVar("ShapeT", bound=tuple[int, ...])
+DTypeT = TypeVar("DTypeT", bound="np.dtype[Any]")
+
+CanArray: TypeAlias = "np.ndarray[ShapeT, DTypeT]"
 {%- endif %}
 
 
