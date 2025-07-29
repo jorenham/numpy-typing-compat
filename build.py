@@ -33,7 +33,7 @@ BUILD = _TODAY.year * 10_000 + _TODAY.month * 100 + _TODAY.day
 
 DIR_ROOT = Path(__file__).parent
 DIR_DIST = DIR_ROOT / "dist"
-DIR_PROJECTS = DIR_ROOT / "projects"
+DIR_BUILD = DIR_ROOT / "build"
 DIR_TEMPLATES = DIR_ROOT / "templates"
 
 JINJA_ENV = jinja2.Environment(
@@ -206,7 +206,7 @@ class Project:
 
     @property
     def project_path(self, /) -> Path:
-        return DIR_PROJECTS / self.name
+        return DIR_BUILD / self.name
 
     @property
     def dist_paths(self, /) -> DistInfo[Path]:
@@ -379,8 +379,8 @@ def main(*args: str) -> int:
                 # only print the paths of new builds to stdout
                 print(path.relative_to(Path.cwd()), file=sys.stdout)
 
-    if not flags.keep and DIR_PROJECTS.exists():
-        shutil.rmtree(DIR_PROJECTS)
+    if not flags.keep and DIR_BUILD.exists():
+        shutil.rmtree(DIR_BUILD)
 
     return 0
 
