@@ -1,7 +1,5 @@
 # `numpy-typing-compat`
 
-*NumPy version information that type-checkers understand*
-
 [![release](https://img.shields.io/github/v/release/jorenham/numpy-typing-compat?style=flat-square&color=333)][RELEASES]
 ![typed](https://img.shields.io/pypi/types/numpy-typing-compat?style=flat-square&color=333)
 ![license](https://img.shields.io/github/license/jorenham/numpy-typing-compat?style=flat-square&color=333)
