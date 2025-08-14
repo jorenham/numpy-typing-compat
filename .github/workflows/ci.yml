@@ -17,18 +17,18 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5.0.0
 
       - name: dprint
         uses: dprint/check@v2.3
 
       - name: ruff check
-        uses: astral-sh/ruff-action@v3.5.0
+        uses: astral-sh/ruff-action@v3.5.1
         with:
           args: "check --preview --output-format=github"
 
       - name: ruff
-        uses: astral-sh/ruff-action@v3.5.0
+        uses: astral-sh/ruff-action@v3.5.1
         with:
           args: "format --preview --check --diff"
 
@@ -36,8 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: astral-sh/setup-uv@v6.4.3
+      - uses: actions/checkout@v5.0.0
+      - uses: astral-sh/setup-uv@v6.5.0
         with:
           activate-environment: true
 
@@ -57,8 +57,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4.2.2
-      - uses: astral-sh/setup-uv@v6.4.3
+      - uses: actions/checkout@v5.0.0
+      - uses: astral-sh/setup-uv@v6.5.0
 
       - name: build
         run: uv run build.py
