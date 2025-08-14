@@ -1,6 +1,7 @@
 # `numpy-typing-compat`
 
 [![release](https://img.shields.io/github/v/release/jorenham/numpy-typing-compat?style=flat-square&color=333)][RELEASES]
+[![Conda Downloads](https://img.shields.io/conda/d/conda-forge/numpy-typing-compat?style=flat-square&color=333)][CF]
 ![typed](https://img.shields.io/pypi/types/numpy-typing-compat?style=flat-square&color=333)
 ![license](https://img.shields.io/github/license/jorenham/numpy-typing-compat?style=flat-square&color=333)
 [![NumPy](https://img.shields.io/badge/NumPy-013243?logo=NumPy&style=flat-square&logoColor=4D77CF&color=333)][NP]
@@ -115,3 +116,4 @@ used.
 [NP]: https://github.com/numpy/numpy
 [OP]: https://github.com/jorenham/optype
 [ONP]: https://github.com/jorenham/optype#optypenumpy
+[CF]: https://anaconda.org/conda-forge/numpy-typing-compat
