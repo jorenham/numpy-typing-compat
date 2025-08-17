@@ -319,7 +319,7 @@ class Project:
                 py_flag,
                 "python",
                 "-c",
-                "import numpy_typing_compat as nptc; assert nptc._check_version()",
+                f"import {NAME} as nptc; assert nptc._check_version()",
                 cwd=tmpdir,
             )
 
