@@ -17,6 +17,7 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 import urllib.request
 from collections.abc import Container
 from pathlib import Path
@@ -164,7 +165,7 @@ def _fetch_latest_release_hashes() -> DistInfo[dict[Version, tuple[int, str]]]:
 
 def _run_command(
     *cmd: str,
-    cwd: Path | None = None,
+    cwd: str | Path | None = None,
 ) -> subprocess.CompletedProcess[str]:
     flags = Flags.from_args()
 
@@ -247,6 +248,21 @@ class Project:
         }
         return _get_template(fname).render(**context)
 
+    def _run_command(self, *cmd: str) -> subprocess.CompletedProcess[str]:
+        return _run_command(*cmd, cwd=self.project_path)
+
+    def _lint_project(self, /) -> None:
+        # ruff check and format the generated code
+        for ruff_cmd in ("check", "format"):
+            _ = self._run_command(
+                "uvx",
+                "ruff",
+                ruff_cmd,
+                "--no-cache",
+                "--preview",
+                "--quiet",
+            )
+
     def _create_project(self, /) -> None:
         project_dir = self.project_path
         project_dir.mkdir(parents=True, exist_ok=True)
@@ -270,28 +286,48 @@ class Project:
         init_file = module_dir / "__init__.py"
         _ = init_file.write_text(self._render_to_string("__init__.py"))
 
-        # ruff check and format the generated code
-        for ruff_cmd in ("check", "format"):
+        self._lint_project()
+
+    def _validate_wheel(self, /) -> None:
+        """Try to import the package to ensure it is valid."""
+
+        # TODO: use the lowest supported python version
+        # py_flag = f"--python={self.py_range[0]}"
+        py_version = self.py_range[1]
+        py_flag = f"--python={py_version[0]}.{py_version[1] - 1}"
+
+        with tempfile.TemporaryDirectory() as tmpdir:
             _ = _run_command(
-                "uvx",
-                "ruff",
-                ruff_cmd,
+                "uv",
+                "init",
+                "--bare",
                 "--no-cache",
-                "--preview",
-                "--quiet",
-                cwd=self.project_path,
+                "--name=nptc-test",
+                py_flag,
+                cwd=tmpdir,
+            )
+            _ = _run_command(
+                "uv",
+                "add",
+                py_flag,
+                str(self.dist_paths.wheel),
+                cwd=tmpdir,
+            )
+            _ = _run_command(
+                "uv",
+                "run",
+                py_flag,
+                "python",
+                "-c",
+                "import numpy_typing_compat as nptc; assert nptc._check_version()",
+                cwd=tmpdir,
             )
 
     def build(self, /) -> None:
         """Create and `uv build` the projects."""
         self._create_project()
 
-        completed = _run_command(
-            "uv",
-            "build",
-            f"--directory=./{self.project_path.relative_to(Path.cwd())}",
-            f"--out-dir={DIR_DIST}",
-        )
+        completed = self._run_command("uv", "build", f"--out-dir={DIR_DIST}")
 
         # verify that the build was successful
         paths: list[Path] = []
@@ -315,6 +351,8 @@ class Project:
         paths_expect = self.dist_paths
         assert path_sdist == paths_expect.sdist, (path_sdist, paths_expect.sdist)
         assert path_wheel == paths_expect.wheel, (path_wheel, paths_expect.wheel)
+
+        self._validate_wheel()
 
 
 PROJECTS = [
