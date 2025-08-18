@@ -24,8 +24,10 @@ classifiers = [
 ]
 requires-python = ">={{ py_start }}"
 dependencies = [
-    "numpy>={{ np_start }},<{{ np_stop }}",{% if py_start[1] < 10 %}
-    "typing_extensions>=4.10; python_version<'3.10'",{% endif %}
+  "numpy >={{ np_start }}, <{{ np_stop }}",
+{%- if py_start < (3, 10) %}
+  "typing_extensions >=4; python_version < '3.10'",
+{%- endif %}
 ]
 
 [project.urls]
