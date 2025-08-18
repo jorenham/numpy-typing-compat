@@ -5,9 +5,6 @@ on:
   release:
     types: [published]
 
-env:
-  UV_LOCKED: 1
-
 jobs:
   pypi-publish:
     runs-on: ubuntu-latest
