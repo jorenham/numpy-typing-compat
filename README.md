@@ -20,7 +20,7 @@ appropriate type annotations.
 > In most situations, it is recommended to use `optype` instead of
 > `numpy-typing-compat`. See the [`optype.numpy` documentation][ONP] for more details.
 
-## Installation
+## Installation and Versioning
 
 The `numpy-typing-compat` packages are available on PyPI and conda-forge.
 
@@ -29,13 +29,6 @@ Modern package managers such as [`uv`](https://github.com/astral-sh/uv) and
 appropriate version of `numpy-typing-compat` that matches your installed NumPy version,
 in order to satisfy the `numpy` dependency restrictions of `numpy-typing-compat`.
 
-For example, the `numpy-typing-compat==20250818.2.1` distribution of release `v20250818`
-specifies `numpy>=2.1,<2.2` as a required dependency. Modern package managers will
-ensure that these dependency restrictions are satisfied. That way, if you upgrade
-`numpy` from `2.1` to `2.3` (e.g. by running `uv sync --upgrade`) then `uv` will also
-automatically look for a version of `numpy-typing-compat` that satisfies the new `numpy`
-version, which for this example would be `numpy-typing-compat==20250818.2.3`.
-
 > [!WARNING]
 > Legacy package managers such as `pip` don't always respect dependency restrictions.
 > Running `pip install --upgrade numpy` will *not* automatically upgrade
@@ -43,6 +36,23 @@ version, which for this example would be `numpy-typing-compat==20250818.2.3`.
 > `pip`, then be sure to manually install the correct version of `numpy-typing-compat`
 > that matches your installed NumPy version. Running `pip check` will tell you whether
 > the installed `numpy-typing-compat` and `numpy` versions are compatible.
+
+To illustrate, the `numpy-typing-compat==20250818.2.1` distribution of release `v20250818`
+specifies `numpy>=2.1,<2.2` as a required dependency. Modern package managers will
+ensure that these dependency restrictions are satisfied. That way, if you upgrade
+`numpy` from `2.1` to `2.3` (e.g. by running `uv sync --upgrade`) then `uv` will also
+automatically look for a version of `numpy-typing-compat` that satisfies the new `numpy`
+version, which for this example would be `numpy-typing-compat==20250818.2.3`.
+
+| numpy-typing-compat | NumPy          | Python   |
+| ------------------- | -------------- | -------- |
+| `20250818.1.22`     | `>=1.22,<1.23` | `>=3.8`  |
+| `20250818.1.23`     | `>=1.23,<1.25` | `>=3.8`  |
+| `20250818.1.25`     | `>=1.25,<2.0`  | `>=3.9`  |
+| `20250818.2.0`      | `>=2.0,<2.1`   | `>=3.9`  |
+| `20250818.2.1`      | `>=2.1,<2.2`   | `>=3.10` |
+| `20250818.2.2`      | `>=2.2,<2.3`   | `>=3.10` |
+| `20250818.2.3`      | `>=2.3,<2.4`   | `>=3.11` |
 
 ## Reference
 
