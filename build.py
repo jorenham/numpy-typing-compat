@@ -307,7 +307,7 @@ class Project:
             wheel = str(self.dist_paths.wheel)
             _ = _run_command("uv", "add", py_flag, wheel, cwd=tmpdir)
 
-            # try to import the package, and ensure satistfiable version constraints
+            # try to import the package, and ensure satisfiable version constraints
             _ = _run_command(
                 "uv",
                 "run",
