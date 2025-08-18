@@ -61,4 +61,4 @@ jobs:
       - uses: astral-sh/setup-uv@v6.5.0
 
       - name: build
-        run: uv run build.py
+        run: uv run build.py --always
