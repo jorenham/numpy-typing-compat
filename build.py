@@ -199,7 +199,7 @@ class Project:
 
     @property
     def version(self, /) -> str:
-        return f"{self.np_range[0]}.{BUILD}"
+        return f"{BUILD}.{self.np_range[0]}"
 
     @property
     def name(self, /) -> str:

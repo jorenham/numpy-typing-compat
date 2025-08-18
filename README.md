@@ -22,20 +22,22 @@ appropriate type annotations.
 
 ## Installation
 
-Modern package managers such as [`uv`](https://github.com/astral-sh/uv) will
-automatically install the appropriate version of `numpy-typing-compat` that matches your
-installed NumPy version, in order to satisfy the `numpy` dependency restrictions of
-`numpy-typing-compat`.
+The `numpy-typing-compat` packages are available on PyPI and conda-forge.
 
-For example, the `numpy-typing-compat==2.1.*` distribution specifies `numpy>=2.1,<2.2`
-as a required dependency. Modern package managers will ensure that these dependency
-restrictions are satisfied. That way, if you upgrade `numpy` from `2.1` to `2.3`, e.g.
-by running `uv sync --upgrade`, then `uv` will also automatically look for a version of
-`numpy-typing-compat` that satisfies the new `numpy` version, which in this case
-would be `numpy-typing-compat==2.3.*`.
+Modern package managers such as [`uv`](https://github.com/astral-sh/uv) and
+[`pixi`](https://github.com/prefix-dev/pixi/) will automatically install the
+appropriate version of `numpy-typing-compat` that matches your installed NumPy version,
+in order to satisfy the `numpy` dependency restrictions of `numpy-typing-compat`.
+
+For example, the `numpy-typing-compat==20250818.2.1` distribution of release `v20250818`
+specifies `numpy>=2.1,<2.2` as a required dependency. Modern package managers will
+ensure that these dependency restrictions are satisfied. That way, if you upgrade
+`numpy` from `2.1` to `2.3` (e.g. by running `uv sync --upgrade`) then `uv` will also
+automatically look for a version of `numpy-typing-compat` that satisfies the new `numpy`
+version, which for this example would be `numpy-typing-compat==20250818.2.3`.
 
 > [!WARNING]
-> Legacy package managers such as `pip` don't respect dependency restrictions.
+> Legacy package managers such as `pip` don't always respect dependency restrictions.
 > Running `pip install --upgrade numpy` will *not* automatically upgrade
 > `numpy-typing-compat` to the correct version. If for some reason you need to use
 > `pip`, then be sure to manually install the correct version of `numpy-typing-compat`
@@ -49,7 +51,7 @@ would be `numpy-typing-compat==2.3.*`.
 Additionally, the package provides a `numpy_typing_compat.array_api` namespace that's a
 re-export of the `numpy.array_api` module on `numpy < 2.0`, or the main `numpy` module
 on `numpy >= 2.0`. Note that the `numpy.array_api` module was introduced in
-`numpy >= 1.23`, so it isn't available in `numpy-typing-compat==1.22.*`.
+`numpy >= 1.23`, so it isn't available in e.g. `numpy-typing-compat==20250818.1.22`.
 
 ### `long` and `ulong`
 
