@@ -1,20 +1,52 @@
-from typing import TYPE_CHECKING, Any, Final, Literal, {% if np_start >= (2, 1) %}Protocol, {% endif %}TypeAlias, TypeVar
+{%- if py_start >= (3, 10) -%}
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Final,
+    Literal,
+{%- if np_start >= (2, 1) %}
+    Protocol,
+{%- endif %}
+    TypeAlias,
+    TypeVar,
+)
+{%- else -%}
+import sys
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Final,
+    Literal,
+{%- if np_start >= (2, 1) %}
+    Protocol,
+{%- endif %}
+{%- if py_start < (3, 9) %}
+    Tuple,
+{%- endif  %}
+    TypeVar,
+)
+
+if sys.version_info >= (3, 10):
+    from typing import TypeAlias
+else:
+    from typing_extensions import TypeAlias
+{%- endif %}{# py_start >= (3, 10) #}
 
 if TYPE_CHECKING:
     import numpy as np
 
-{%- if np_start >= (2, 1) %}
+{%- if np_start >= (2, 1) %}{# >=2.1 #}
     import numpy as array_api
     from numpy import long, ulong
     from numpy.dtypes import StringDType
-    {%- if np_start >= (2, 2) %}{# >2.2 #}
+{%- if np_start >= (2, 2) %}{# >=2.2 #}
     from numpy.polynomial._polybase import ABCPolyBase
-    {%- else %}{# >=2.1, <2.2  (mea culpa) #}
+{%- else %}{# >=2.1, <2.2 #}
     from numpy.polynomial._polybase import ABCPolyBase as _ABCPolyBase
     from typing_extensions import LiteralString
 
     ABCPolyBase: TypeAlias = _ABCPolyBase[LiteralString | None]
-    {%- endif %}{# >=2.1 #}
+{%- endif %}{# >=2.1 #}
 {%- elif np_start >= (2, 0) -%}{# >=2.0, <2.1 #}
     import numpy as array_api
     from numpy import dtype, long, ulong
@@ -22,21 +54,20 @@ if TYPE_CHECKING:
     from typing_extensions import Never
 
     StringDType: TypeAlias = dtype[Never]
-{%- else -%}{# >=1.22, <2.0 #}
+{%- else -%}{# <2.0 #}
     from typing_extensions import Never
 
     from numpy.polynomial._polybase import ABCPolyBase
     from numpy import int_ as long
     from numpy import uint as ulong
-    {%- if np_start >= (1, 23) %}{# >=1.23, <2.0 #}
+{%- if np_start >= (1, 23) %}{# >=1.23, <2.0 #}
     from numpy import array_api
 
-    StringDType: TypeAlias = Never
-    {%- else -%}{# >=1.22, <1.23 #}
+{% else -%}{# <1.23 #}
     array_api: TypeAlias = Never
+{%- endif %}{# >=1.23, <2.0 #}
     StringDType: TypeAlias = Never
-    {%- endif %}{# >=1.22, <2.0 #}
-{%- endif %}
+{%- endif %}{# >=2.1 #}
 
 
 __version__: Final[Literal["{{ project.version }}"]] = "{{ project.version }}"
@@ -57,7 +88,7 @@ __all__ = (
     "__version__",
 )
 
-def __dir__() -> tuple[str, ...]:
+def __dir__() -> {% if py_start >= (3, 9) %}t{% else %}T{% endif %}uple[str, ...]:
     return __all__
 
 
@@ -99,11 +130,13 @@ def __getattr__(name: str, /) -> object:
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 {% for other in PROJECTS -%}
-{% set is_ge = np_start >= other.np_range[0] -%}
+{% with is_ge = np_start >= other.np_range[0] -%}
 {{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
+{% endwith -%}
 {% endfor %}
 
 {% if np_start >= (2, 2) -%}
+{#- stringified to avoid having to import numpy eagerly at runtime -#}
 LiteralTrue: TypeAlias = "Literal[True] | np.bool[Literal[True]]"
 LiteralFalse: TypeAlias = "Literal[False] | np.bool[Literal[False]]"
 {%- else -%}
@@ -122,7 +155,7 @@ class CanArray(Protocol[ShapeT_co, DTypeT_co]):
 {%- else %}
 if TYPE_CHECKING:
     ShapeT = TypeVar("ShapeT", bound=tuple[int, ...])
-    DTypeT = TypeVar("DTypeT", bound="np.dtype[Any]")
+    DTypeT = TypeVar("DTypeT", bound=np.dtype[Any])
 
     CanArray: TypeAlias = np.ndarray[ShapeT, DTypeT]
 {%- endif %}

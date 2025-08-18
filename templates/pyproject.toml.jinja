@@ -10,7 +10,7 @@ authors = [{name = "Joren Hammudoglu", email = "jhammudoglu@gmail.com"}]
 license = "BSD-3-Clause"
 license-files = ["LICENSE"]
 readme = "README.md"
-keywords = ["numpy", "typing", "compatibility"]
+keywords = ["numpy", "optype", "typing", "compatibility"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
@@ -23,7 +23,10 @@ classifiers = [
   "Typing :: Typed",
 ]
 requires-python = ">={{ py_start }}"
-dependencies = ["numpy>={{ np_start }},<{{ np_stop }}"]
+dependencies = [
+    "numpy>={{ np_start }},<{{ np_stop }}",{% if py_start[1] < 10 %}
+    "typing_extensions>=4.10; python_version<'3.10'",{% endif %}
+]
 
 [project.urls]
 Repository = "{{ REPO }}"

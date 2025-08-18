@@ -291,10 +291,7 @@ class Project:
     def _validate_wheel(self, /) -> None:
         """Try to import the package to ensure it is valid."""
 
-        # TODO: use the lowest supported python version
-        # py_flag = f"--python={self.py_range[0]}"
-        py_version = self.py_range[1]
-        py_flag = f"--python={py_version[0]}.{py_version[1] - 1}"
+        py_flag = f"--python={self.py_range[0]}"
 
         with tempfile.TemporaryDirectory() as tmpdir:
             _ = _run_command(
