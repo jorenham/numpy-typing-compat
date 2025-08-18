@@ -289,11 +289,10 @@ class Project:
         self._lint_project()
 
     def _validate_wheel(self, /) -> None:
-        """Try to import the package to ensure it is valid."""
-
         py_flag = f"--python={self.py_range[0]}"
 
         with tempfile.TemporaryDirectory() as tmpdir:
+            # create a temporary uv project
             _ = _run_command(
                 "uv",
                 "init",
@@ -303,13 +302,12 @@ class Project:
                 py_flag,
                 cwd=tmpdir,
             )
-            _ = _run_command(
-                "uv",
-                "add",
-                py_flag,
-                str(self.dist_paths.wheel),
-                cwd=tmpdir,
-            )
+
+            # install the wheel
+            wheel = str(self.dist_paths.wheel)
+            _ = _run_command("uv", "add", py_flag, wheel, cwd=tmpdir)
+
+            # try to import the package, and ensure satisfiable version constraints
             _ = _run_command(
                 "uv",
                 "run",
@@ -317,6 +315,20 @@ class Project:
                 "python",
                 "-c",
                 f"import {NAME} as nptc; assert nptc._check_version()",
+                cwd=tmpdir,
+            )
+
+            # validate the static type annotations
+            pyright = "basedpyright"
+            _ = _run_command("uv", "add", py_flag, pyright, cwd=tmpdir)
+            _ = _run_command(
+                "uv",
+                "run",
+                py_flag,
+                pyright,
+                "--level=warning",
+                "--ignoreexternal",
+                f"--verifytypes={NAME}",
                 cwd=tmpdir,
             )
 
