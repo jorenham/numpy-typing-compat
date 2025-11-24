@@ -17,7 +17,7 @@ jobs:
     timeout-minutes: 5
 
     steps:
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6.0.0
 
       - name: dprint
         uses: dprint/check@v2.3
@@ -36,8 +36,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5.0.0
-      - uses: astral-sh/setup-uv@v7.1.2
+      - uses: actions/checkout@v6.0.0
+      - uses: astral-sh/setup-uv@v7.1.4
         with:
           activate-environment: true
           cache-dependency-glob: build.py.lock
@@ -58,9 +58,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v5.0.0
+      - uses: actions/checkout@v6.0.0
 
-      - uses: astral-sh/setup-uv@v7.1.2
+      - uses: astral-sh/setup-uv@v7.1.4
         with:
           cache-dependency-glob: build.py.lock
 
