@@ -65,4 +65,4 @@ jobs:
           cache-dependency-glob: build.py.lock
 
       - name: build
-        run: uv run build.py --always
+        run: uv run build.py
