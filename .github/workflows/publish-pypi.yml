@@ -1,9 +1,10 @@
-name: Update PyPI releases
+name: Publish PyPI releases
 
 on:
   workflow_dispatch:
-  release:
-    types: [published]
+  push:
+    tags:
+      - "v*"
 
 jobs:
   pypi-publish:
