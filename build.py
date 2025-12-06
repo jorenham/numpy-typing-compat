@@ -10,18 +10,15 @@
 
 import dataclasses
 import datetime as dt
-import hashlib
-import json
 import operator
 import re
 import shutil
 import subprocess
 import sys
 import tempfile
-import urllib.request
 from collections.abc import Container
 from pathlib import Path
-from typing import Any, Final, NamedTuple, Self, final, override
+from typing import Final, NamedTuple, Self, final, override
 
 import jinja2
 
@@ -47,7 +44,6 @@ JINJA_ENV = jinja2.Environment(
 class Flags:
     """Flags for the build script."""
 
-    always: bool = False
     keep: bool = False
     quiet: bool = False
     silent: bool = False
@@ -92,7 +88,7 @@ class DistInfo[T](NamedTuple):
     wheel: T
 
 
-def _get_template(fname: str) -> jinja2.Template:
+def _get_template(fname: str, /) -> jinja2.Template:
     return JINJA_ENV.get_template(
         f"{fname}.jinja",
         globals={
@@ -102,69 +98,6 @@ def _get_template(fname: str) -> jinja2.Template:
             "PROJECTS": PROJECTS,
         },
     )
-
-
-def _sha256sum(path: str | Path, /) -> str:
-    with Path(path).open("rb") as fp:
-        digest = hashlib.file_digest(fp, "sha256")
-    return digest.hexdigest()
-
-
-def _fetch_json(
-    url: str,
-    /,
-    *,
-    headers: dict[str, str] | None = None,
-    timeout: float = 5,
-) -> dict[str, Any]:  # pyright: ignore[reportExplicitAny]
-    """Make a JSON request to the given URL."""
-    request = urllib.request.Request(url, headers=headers or {})
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        if response.status != 200:
-            raise IOError(f"Failed to fetch {url}: {response.status} {response.reason}")
-        contents = response.read()
-    return json.loads(contents)  # type: ignore[no-any-return]
-
-
-def _fetch_latest_release_hashes() -> DistInfo[dict[Version, tuple[int, str]]]:
-    # https://peps.python.org/pep-0691/
-    # https://docs.pypi.org/api/index-api/#json_1
-    data = _fetch_json(
-        f"https://files.pythonhosted.org/simple/{NAME}",
-        headers={
-            "Host": "pypi.org",
-            "Accept": "application/vnd.pypi.simple.v1+json",
-        },
-    )
-    if "files" not in data:
-        raise ValueError(f"Invalid response from PyPI: {data!r}")
-
-    # keep only the latest sdist and wheel files for each numpy version
-    # {Version: (build, sha256)}
-    latest_sdists: dict[Version, tuple[int, str]] = {}
-    latest_wheels: dict[Version, tuple[int, str]] = {}
-    for file in data["files"]:
-        fname: str = file["filename"]
-        if fname.endswith(".whl"):
-            # e.g. numpy_typing_compat-1.22.20250724-py3-none-any.whl
-            pattern = rf"{NAME}-(\d)\.(\d+)\.(\d+)-py3-none-any\.whl"
-            target = latest_wheels
-        else:
-            # e.g. numpy_typing_compat-1.25.20250724.tar.gz
-            pattern = rf"{NAME}-(\d)\.(\d+)\.(\d+)\.tar\.gz"
-            target = latest_sdists
-
-        match = re.match(pattern, fname)
-        assert match, file
-
-        np_version = Version(int(match.group(1)), int(match.group(2)))
-        build = int(match.group(3))
-        assert build > 2025_06_00, file
-
-        if np_version not in target or target[np_version][0] < build:
-            target[np_version] = build, file["hashes"]["sha256"]
-
-    return DistInfo(sdist=latest_sdists, wheel=latest_wheels)
 
 
 def _run_command(
@@ -221,13 +154,6 @@ class Project:
         )
 
     @property
-    def dist_hashes(self, /) -> DistInfo[str]:
-        return DistInfo(
-            sdist=_sha256sum(self.dist_paths.sdist),
-            wheel=_sha256sum(self.dist_paths.wheel),
-        )
-
-    @property
     def const_name(self, /) -> str:
         return f"NUMPY_GE_{self.np_range[0].stable}".replace(".", "_")
 
@@ -252,7 +178,7 @@ class Project:
         }
         return _get_template(fname).render(**context)
 
-    def _run_command(self, *cmd: str) -> subprocess.CompletedProcess[str]:
+    def _run_command(self, /, *cmd: str) -> subprocess.CompletedProcess[str]:
         return _run_command(*cmd, cwd=self.project_path)
 
     def _lint_project(self, /) -> None:
@@ -406,33 +332,15 @@ PROJECTS = [
 
 def main(*args: str) -> int:
     flags = Flags.from_args(set(args))
-
-    latest_hashes: DistInfo[dict[Version, tuple[int, str]]]
-    if flags.always:
-        latest_hashes = DistInfo({}, {})
-    else:
-        latest_hashes = _fetch_latest_release_hashes()
+    cwd = Path.cwd()
 
     for project in PROJECTS:
         project.build()
-        np_version = project.np_range[0]
-        hashes = project.dist_hashes
         paths = project.dist_paths
 
-        for build_hashes, hash_, path in zip(latest_hashes, hashes, paths, strict=True):
-            pypi_build, pypi_hash = build_hashes.get(np_version, (0, ""))
-            if hash_ == pypi_hash:
-                if not flags.quiet:
-                    print(
-                        f"no changes since {np_version}.{pypi_build} - removing {path}",
-                        file=sys.stderr,
-                    )
-
-                path.unlink()
-
-            elif not flags.silent:
-                # only print the paths of new builds to stdout
-                print(path.relative_to(Path.cwd()), file=sys.stdout)
+        if not flags.silent:
+            for path in paths:
+                print(path.relative_to(cwd), file=sys.stdout)
 
     if not flags.keep and DIR_BUILD.exists():
         shutil.rmtree(DIR_BUILD)
