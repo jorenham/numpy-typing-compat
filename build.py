@@ -350,3 +350,5 @@ def main(*args: str) -> int:
 
 if __name__ == "__main__":
     sys.exit(main(*sys.argv[1:]))
+else:
+    raise RuntimeError("This module is intended to be run as a script only.")
