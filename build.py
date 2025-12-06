@@ -2,7 +2,7 @@
 # requires-python = ">=3.13"
 # dependencies = [
 #     "jinja2 >=3.1.6",
-#     "uv >=0.8.24",
+#     "uv >=0.9.16",
 # ]
 # ///
 
@@ -391,6 +391,10 @@ PROJECTS = [
     ),
     Project(
         np_range=(Version(2, 3), Version(2, 4)),
+        py_range=(Version(3, 11), Version(3, 15)),
+    ),
+    Project(
+        np_range=(Version(2, 4), Version(2, 5)),
         py_range=(Version(3, 11), Version(3, 15)),
     ),
 ]
