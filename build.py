@@ -69,15 +69,19 @@ class Version(NamedTuple):
 
     major: int
     minor: int
+    pre: str = ""
+
+    @property
+    def stable(self) -> Self:
+        return type(self)(self.major, self.minor) if self.pre else self
 
     @override
     def __str__(self, /) -> str:
-        return f"{self.major}.{self.minor}"
+        return f"{self.major}.{self.minor}{self.pre}"
 
     @override
     def __repr__(self, /) -> str:
-        clsname = type(self).__name__
-        return f"<{clsname} {self.major}.{self.minor}>"
+        return f"<{type(self).__name__} {self}>"
 
 
 type VersionRange = tuple[Version, Version]
@@ -199,7 +203,7 @@ class Project:
 
     @property
     def version(self, /) -> str:
-        return f"{BUILD}.{self.np_range[0]}"
+        return f"{BUILD}.{self.np_range[0].stable}"
 
     @property
     def name(self, /) -> str:
@@ -225,7 +229,7 @@ class Project:
 
     @property
     def const_name(self, /) -> str:
-        return f"NUMPY_GE_{self.np_range[0]}".replace(".", "_")
+        return f"NUMPY_GE_{self.np_range[0].stable}".replace(".", "_")
 
     @override
     def __str__(self, /) -> str:
@@ -394,7 +398,7 @@ PROJECTS = [
         py_range=(Version(3, 11), Version(3, 15)),
     ),
     Project(
-        np_range=(Version(2, 4), Version(2, 5)),
+        np_range=(Version(2, 4, "rc1"), Version(2, 5)),
         py_range=(Version(3, 11), Version(3, 15)),
     ),
 ]
