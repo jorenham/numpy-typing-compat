@@ -1,4 +1,5 @@
-{%- if py_start >= (3, 10) -%}
+# ruff: noqa: I001
+{% if py_start >= (3, 10) -%}
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -64,13 +65,13 @@ if TYPE_CHECKING:
     from numpy import array_api
 
 {% else -%}{# <1.23 #}
-    array_api: TypeAlias = Never
+    array_api: TypeAlias = Never  # noqa: PYI042
 {%- endif %}{# >=1.23, <2.0 #}
     StringDType: TypeAlias = Never
 {%- endif %}{# >=2.1 #}
 
 
-__version__: Final[Literal["{{ project.version }}"]] = "{{ project.version }}"
+__version__: Final = "{{ project.version }}"
 
 __all__ = (
 {%- for other in PROJECTS %}
@@ -81,14 +82,14 @@ __all__ = (
     "LiteralFalse",
     "LiteralTrue",
     "StringDType",
+    "__version__",
+    "_check_version",
     "array_api",
     "long",
     "ulong",
-    "_check_version",
-    "__version__",
 )
 
-def __dir__() -> {% if py_start >= (3, 9) %}t{% else %}T{% endif %}uple[str, ...]:
+def __dir__() -> {% if py_start >= (3, 9) %}tuple[str, ...]:{% else %}Tuple[str, ...]:  # noqa: FA100{% endif %}
     return __all__
 
 
@@ -108,7 +109,7 @@ def __getattr__(name: str, /) -> object:
 {%- endif %}
 {% if np_start >= (1, 23) %}
     if name == "array_api":
-        import numpy{% if np_start < (2, 0) %}.array_api{% endif %} as array_api
+        import numpy{% if np_start < (2, 0) %}.array_api{% endif %} as array_api{% if np_start < (2, 0) %}  # noqa: PLR0402{% endif %}
         return array_api
 {%- endif %}
 
@@ -131,7 +132,7 @@ def __getattr__(name: str, /) -> object:
 
 {% for other in PROJECTS -%}
 {% with is_ge = np_start >= other.np_range[0] -%}
-{{ other.const_name }}: Final[Literal[{{ is_ge }}]] = {{ is_ge }}
+{{ other.const_name }}: Final = {{ is_ge }}
 {% endwith -%}
 {% endfor %}
 
