@@ -109,7 +109,13 @@ def _run_command(
     if not flags.quiet:
         print(">>>", " ".join(cmd), file=sys.stderr)
 
-    completed = subprocess.run(cmd, capture_output=True, text=True, cwd=cwd)
+    completed = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=cwd,
+        check=False,
+    )
 
     if not flags.quiet:
         _ = sys.stdout.write(completed.stdout)
