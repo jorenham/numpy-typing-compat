@@ -333,6 +333,10 @@ PROJECTS = [
         np_range=(Version(2, 4), Version(2, 5)),
         py_range=(Version(3, 11), Version(3, 15)),
     ),
+    Project(
+        np_range=(Version(2, 5), Version(2, 6)),
+        py_range=(Version(3, 12), Version(3, 15)),
+    ),
 ]
 
 
