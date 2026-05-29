@@ -1,5 +1,3 @@
-# ruff: noqa: I001
-{% if py_start >= (3, 10) -%}
 from typing import (
     TYPE_CHECKING,
     Any,
@@ -13,34 +11,11 @@ from typing import (
 {%- endif %}
     TypeVar,
 )
-{%- else -%}
-import sys
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Final,
-    Literal,
-{%- if np_start >= (2, 1) %}
-    Protocol,
-{%- endif %}
-{%- if py_start < (3, 9) %}
-    Tuple,
-{%- endif  %}
-    TypeVar,
-)
-
-if sys.version_info >= (3, 10):
-    from typing import TypeAlias
-else:
-    from typing_extensions import TypeAlias
-{%- endif %}{# py_start >= (3, 10) #}
 
 if TYPE_CHECKING:
     import numpy as np
 
 {%- if np_start >= (2, 1) %}{# >=2.1 #}
-    import numpy as array_api
-    from numpy import long, ulong
     from numpy.dtypes import StringDType
 {%- if np_start >= (2, 2) %}{# >=2.2 #}
     from numpy.polynomial._polybase import ABCPolyBase
@@ -50,27 +25,13 @@ if TYPE_CHECKING:
 
     ABCPolyBase: TypeAlias = _ABCPolyBase[LiteralString | None]
 {%- endif %}{# >=2.1 #}
-{%- elif np_start >= (2, 0) -%}{# >=2.0, <2.1 #}
-    import numpy as array_api
-    from numpy import dtype, long, ulong
+{%- else -%}{# >=2.0, <2.1 #}
+    from numpy import dtype
     from numpy.polynomial._polybase import ABCPolyBase
     from typing_extensions import Never
 
     StringDType: TypeAlias = dtype[Never]
-{%- else -%}{# <2.0 #}
-    from typing_extensions import Never
-
-    from numpy.polynomial._polybase import ABCPolyBase
-    from numpy import int_ as long
-    from numpy import uint as ulong
-{%- if np_start >= (1, 23) %}{# >=1.23, <2.0 #}
-    from numpy import array_api
-
-{% else -%}{# <1.23 #}
-    array_api: TypeAlias = Never  # noqa: PYI042
-{%- endif %}{# >=1.23, <2.0 #}
-    StringDType: TypeAlias = Never
-{%- endif %}{# >=2.1 #}
+{%- endif %}
 
 
 __version__: Final = "{{ project.version }}"
@@ -86,12 +47,9 @@ __all__ = (
     "StringDType",
     "__version__",
     "_check_version",
-    "array_api",
-    "long",
-    "ulong",
 )
 
-def __dir__() -> {% if py_start >= (3, 9) %}tuple[str, ...]:{% else %}Tuple[str, ...]:  # noqa: FA100{% endif %}
+def __dir__() -> tuple[str, ...]:
     return __all__
 
 
@@ -104,24 +62,9 @@ def __getattr__(name: str, /) -> object:
         from numpy import ndarray
         return ndarray
 {%- endif %}
-{% if np_start >= (2, 0) %}
     if name == "StringDType":
         from numpy.dtypes import StringDType
         return StringDType
-{%- endif %}
-{% if np_start >= (1, 23) %}
-    if name == "array_api":
-        import numpy{% if np_start < (2, 0) %}.array_api{% endif %} as array_api{% if np_start < (2, 0) %}  # noqa: PLR0402{% endif %}
-        return array_api
-{%- endif %}
-
-    if name == "long":
-        from numpy import {% if np_start < (2, 0) %}int_ as {% endif %}long
-        return long
-
-    if name == "ulong":
-        from numpy import {% if np_start < (2, 0) %}uint as {% endif %}ulong
-        return ulong
 
     if name == "ABCPolyBase":
         from numpy.polynomial._polybase import ABCPolyBase
