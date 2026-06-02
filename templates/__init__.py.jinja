@@ -8,7 +8,9 @@ from typing import (
 {%- if np_start >= (2, 1) %}
     Protocol,
 {%- endif %}
+{%- if py_start < (3, 12) %}
     TypeAlias,
+{%- endif %}
     TypeVar,
 )
 {%- else -%}
@@ -136,7 +138,10 @@ def __getattr__(name: str, /) -> object:
 {% endwith -%}
 {% endfor %}
 
-{% if np_start >= (2, 2) -%}
+{% if np_start >= (2, 5) -%}
+type LiteralTrue = Literal[True] | np.bool[Literal[True]]
+type LiteralFalse = Literal[False] | np.bool[Literal[False]]
+{% elif np_start >= (2, 2) -%}
 {#- stringified to avoid having to import numpy eagerly at runtime -#}
 LiteralTrue: TypeAlias = "Literal[True] | np.bool[Literal[True]]"
 LiteralFalse: TypeAlias = "Literal[False] | np.bool[Literal[False]]"
