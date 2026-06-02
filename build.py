@@ -323,7 +323,7 @@ PROJECTS = [
     ),
     Project(
         np_range=(Version(2, 5, "rc1"), Version(2, 6)),
-        py_range=(Version(3, 12), Version(3, 15)),
+        py_range=(Version(3, 12), Version(3, 16)),
     ),
 ]
 
