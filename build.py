@@ -302,20 +302,8 @@ class Project:
 
 PROJECTS = [
     Project(
-        np_range=(Version(1, 22), Version(1, 23)),
-        py_range=(Version(3, 8), Version(3, 11)),
-    ),
-    Project(
-        np_range=(Version(1, 23), Version(1, 25)),
-        py_range=(Version(3, 8), Version(3, 12)),
-    ),
-    Project(
-        np_range=(Version(1, 25), Version(2, 0)),
-        py_range=(Version(3, 9), Version(3, 13)),
-    ),
-    Project(
         np_range=(Version(2, 0), Version(2, 1)),
-        py_range=(Version(3, 9), Version(3, 13)),
+        py_range=(Version(3, 10), Version(3, 13)),
     ),
     Project(
         np_range=(Version(2, 1), Version(2, 2)),

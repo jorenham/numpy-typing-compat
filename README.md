@@ -44,34 +44,15 @@ ensure that these dependency restrictions are satisfied. That way, if you upgrad
 automatically look for a version of `numpy-typing-compat` that satisfies the new `numpy`
 version, which for this example would be `numpy-typing-compat==20250818.2.3`.
 
-| numpy-typing-compat | NumPy          | Python   |
-| ------------------- | -------------- | -------- |
-| `20251206.1.22`     | `>=1.22,<1.23` | `>=3.8`  |
-| `20251206.1.23`     | `>=1.23,<1.25` | `>=3.8`  |
-| `20251206.1.25`     | `>=1.25,<2.0`  | `>=3.9`  |
-| `20251206.2.0`      | `>=2.0,<2.1`   | `>=3.9`  |
-| `20251206.2.1`      | `>=2.1,<2.2`   | `>=3.10` |
-| `20251206.2.2`      | `>=2.2,<2.3`   | `>=3.10` |
-| `20251206.2.3`      | `>=2.3,<2.4`   | `>=3.11` |
-| `20251206.2.4`      | `>=2.4,<2.5`   | `>=3.11` |
+| numpy-typing-compat | NumPy        | Python   |
+| ------------------- | ------------ | -------- |
+| `20251206.2.0`      | `>=2.0,<2.1` | `>=3.10` |
+| `20251206.2.1`      | `>=2.1,<2.2` | `>=3.10` |
+| `20251206.2.2`      | `>=2.2,<2.3` | `>=3.10` |
+| `20251206.2.3`      | `>=2.3,<2.4` | `>=3.11` |
+| `20251206.2.4`      | `>=2.4,<2.5` | `>=3.11` |
 
 ## Reference
-
-### `array_api`
-
-Additionally, the package provides a `numpy_typing_compat.array_api` namespace that's a
-re-export of the `numpy.array_api` module on `numpy < 2.0`, or the main `numpy` module
-on `numpy >= 2.0`. Note that the `numpy.array_api` module was introduced in
-`numpy >= 1.23`, so it isn't available in e.g. `numpy-typing-compat==20250818.1.22`.
-
-### `long` and `ulong`
-
-NumPy 2.0 introduced the new `long` and `ulong` scalar types, which are not available in
-`numpy < 2.0`, and instead went by the names `int_` and `uint` (which in `numpy >= 2.0`
-are aliases for `intp` and `uintp`).
-If you need to support both NumPy versions, you can use the `long` and `ulong` types
-from `numpy_typing_compat`, which on `numpy < 2.0` are aliases for `np.int_` and
-`np.uint`, and on `numpy >= 2.0` are re-exports of `np.long` and `np.ulong`.
 
 ### `StringDType`
 
@@ -106,16 +87,13 @@ provided. These are type aliases for `Literal[True]` and `Literal[False]` on
 
 The following low-level boolean version constants are available:
 
-| Constant        | `True` when     |
-| --------------- | --------------- |
-| `NUMPY_GE_1_22` | `numpy >= 1.22` |
-| `NUMPY_GE_1_23` | `numpy >= 1.23` |
-| `NUMPY_GE_1_25` | `numpy >= 1.25` |
-| `NUMPY_GE_2_0`  | `numpy >= 2.0`  |
-| `NUMPY_GE_2_1`  | `numpy >= 2.1`  |
-| `NUMPY_GE_2_2`  | `numpy >= 2.2`  |
-| `NUMPY_GE_2_3`  | `numpy >= 2.3`  |
-| `NUMPY_GE_2_4`  | `numpy >= 2.4`  |
+| Constant       | `True` when    |
+| -------------- | -------------- |
+| `NUMPY_GE_2_0` | `numpy >= 2.0` |
+| `NUMPY_GE_2_1` | `numpy >= 2.1` |
+| `NUMPY_GE_2_2` | `numpy >= 2.2` |
+| `NUMPY_GE_2_3` | `numpy >= 2.3` |
+| `NUMPY_GE_2_4` | `numpy >= 2.4` |
 
 Each constant is typed as `Literal[True]` or `Literal[False]` depending on your NumPy
 version, so that static type-checkers are able to understand the NumPy version being
