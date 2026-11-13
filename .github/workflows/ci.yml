@@ -23,7 +23,7 @@ jobs:
           persist-credentials: false
 
       - name: dprint
-        uses: dprint/check@7dc032d8874778fc024f6f9b4a7e6d896782c330 # v2.5
+        uses: dprint/check@371a959e3c77f34a76a03d2c50df2e3f2302d016 # v2.6
 
       - name: ruff check
         uses: astral-sh/ruff-action@278981a28ce3188b1e39527901f38254bf3aac89 # v4.1.0
